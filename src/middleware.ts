@@ -3,7 +3,7 @@ import { AUTH_COOKIE, isValidAuthToken } from "@/lib/auth";
 
 const PUBLIC_PATHS = ["/login"];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const password = process.env.APP_PASSWORD;
   const token = request.cookies.get(AUTH_COOKIE)?.value;
