@@ -49,8 +49,11 @@ export function AppShell({
                 </h1>
               </div>
               {passwordEnabled ? (
-                <form action={logoutAction}>
-                  <button className="text-sm text-stone-500 underline" type="submit">
+                <form action={logoutAction} className="shrink-0">
+                  <button
+                    className="min-h-11 rounded-xl border border-stone-300 bg-white px-4 text-sm font-semibold text-stone-800 shadow-sm transition hover:bg-stone-50"
+                    type="submit"
+                  >
                     خروج
                   </button>
                 </form>
@@ -99,6 +102,19 @@ export function AppShell({
           ) : (
             <ProductCalculator products={products} />
           )}
+
+          {passwordEnabled ? (
+            <footer className="mt-8 border-t border-stone-200 pt-5">
+              <form action={logoutAction}>
+                <button
+                  className="cb-btn w-full bg-stone-700 hover:bg-stone-800"
+                  type="submit"
+                >
+                  تسجيل الخروج
+                </button>
+              </form>
+            </footer>
+          ) : null}
         </div>
       </DisplayCurrencyProvider>
     </RatesProvider>
