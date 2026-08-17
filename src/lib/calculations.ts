@@ -78,8 +78,23 @@ export type ProductPricingResult = {
   netMarginCad: number;
   marginPercent: number;
   minSalePriceMxn: number;
+  recommendedSalePriceMxn: number | null;
+  recommendedPricesMxn: Record<number, number | null>;
   isHealthy: boolean;
 };
+
+export function salePriceForTargetMarginMxn(
+  fixedCostsMxn: number,
+  dropiCommissionPct: number,
+  targetMarginPct: number,
+): number | null {
+  const commissionRate = dropiCommissionPct / 100;
+  const marginRate = targetMarginPct / 100;
+  const denominator = 1 - commissionRate - marginRate;
+
+  if (denominator <= 0 || fixedCostsMxn <= 0) return null;
+  return fixedCostsMxn / denominator;
+}
 
 export function calculateProductPricing(
   input: {
@@ -92,6 +107,7 @@ export function calculateProductPricing(
     salePriceCurrency: Currency;
     adsCostPerOrderAmount: number;
     adsCostPerOrderCurrency: Currency;
+    targetMarginPct?: number;
   },
   snapshot: ExchangeRateSnapshot,
 ): ProductPricingResult {
@@ -124,11 +140,30 @@ export function calculateProductPricing(
   const minSalePriceMxn =
     remaining > 0 ? fixedCostsMxn / remaining : Number.POSITIVE_INFINITY;
 
+  const targetMargin = input.targetMarginPct ?? 20;
+  const recommendedSalePriceMxn = salePriceForTargetMarginMxn(
+    fixedCostsMxn,
+    input.dropiCommissionPct,
+    targetMargin,
+  );
+  const recommendedPricesMxn = [20, 25, 30].reduce<
+    Record<number, number | null>
+  >((acc, margin) => {
+    acc[margin] = salePriceForTargetMarginMxn(
+      fixedCostsMxn,
+      input.dropiCommissionPct,
+      margin,
+    );
+    return acc;
+  }, {});
+
   return {
     netMarginMxn,
     netMarginCad,
     marginPercent,
     minSalePriceMxn,
+    recommendedSalePriceMxn,
+    recommendedPricesMxn,
     isHealthy: marginPercent >= 20,
   };
 }

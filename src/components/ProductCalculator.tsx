@@ -2,7 +2,7 @@
 
 import { deleteProduct, saveProduct } from "@/app/actions/products";
 import { calculateProductPricing } from "@/lib/calculations";
-import { convertFromCad } from "@/lib/currency";
+import { convertAmount, convertFromCad } from "@/lib/currency";
 import { formatMoney, formatNumber } from "@/lib/format";
 import type { Currency, ProductCalculation } from "@/lib/types";
 import { useRouter } from "next/navigation";
@@ -34,6 +34,7 @@ export function ProductCalculator({
   const { snapshot, error: ratesError } = useRates();
   const { currency: displayCurrency } = useDisplayCurrency();
   const [form, setForm] = useState(emptyForm);
+  const [targetMarginPct, setTargetMarginPct] = useState("20");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,10 +53,11 @@ export function ProductCalculator({
         salePriceCurrency: form.sale_price_currency,
         adsCostPerOrderAmount: Number(form.ads_cost_per_order_amount) || 0,
         adsCostPerOrderCurrency: form.ads_cost_per_order_currency,
+        targetMarginPct: Number(targetMarginPct) || 20,
       },
       snapshot,
     );
-  }, [form, snapshot]);
+  }, [form, snapshot, targetMarginPct]);
 
   const filtered = products.filter((product) =>
     product.product_name.toLowerCase().includes(query.trim().toLowerCase()),
@@ -80,6 +82,16 @@ export function ProductCalculator({
 
   function resetForm() {
     setForm(emptyForm);
+    setTargetMarginPct("20");
+  }
+
+  function applyRecommendedPrice(priceMxn: number) {
+    setForm((current) => ({
+      ...current,
+      sale_price_amount: String(Math.ceil(priceMxn)),
+      sale_price_currency: "MXN",
+    }));
+    setMessage("تم تعبئة سعر البيع المقترح.");
   }
 
   function onSubmit(event: FormEvent) {
@@ -205,20 +217,6 @@ export function ProductCalculator({
         </label>
 
         <MoneyInput
-          id="sale"
-          label="سعر البيع المقترح"
-          amount={form.sale_price_amount}
-          currency={form.sale_price_currency}
-          onAmountChange={(value) =>
-            setForm((current) => ({ ...current, sale_price_amount: value }))
-          }
-          onCurrencyChange={(value) =>
-            setForm((current) => ({ ...current, sale_price_currency: value }))
-          }
-          snapshot={snapshot}
-        />
-
-        <MoneyInput
           id="ads-order"
           label="تكلفة الإعلان المقدّرة لكل طلب"
           hint="تُدخل عادة بالدولار الأمريكي"
@@ -239,7 +237,132 @@ export function ProductCalculator({
           snapshot={snapshot}
         />
 
-        {pricing ? (
+        {pricing && snapshot ? (
+          <section className="rounded-2xl border border-teal-200 bg-teal-50/60 p-4 space-y-3">
+            <div>
+              <h3 className="text-sm font-semibold text-teal-950">
+                لا تعرف بكم تبيع؟
+              </h3>
+              <p className="mt-1 text-xs text-teal-900/80">
+                أدخل تكلفة المورد والتوصيل والإعلانات، ثم اختر الهامش المطلوب
+                لمعرفة سعر البيع المناسب.
+              </p>
+            </div>
+
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-stone-700">
+                الهامش المستهدف (%)
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[20, 25, 30].map((margin) => (
+                  <button
+                    key={margin}
+                    type="button"
+                    className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
+                      Number(targetMarginPct) === margin
+                        ? "bg-teal-700 text-white"
+                        : "bg-white text-teal-800 ring-1 ring-teal-200"
+                    }`}
+                    onClick={() => setTargetMarginPct(String(margin))}
+                  >
+                    {margin}%
+                  </button>
+                ))}
+              </div>
+              <input
+                className="cb-input"
+                inputMode="decimal"
+                type="text"
+                value={targetMarginPct}
+                onChange={(event) => setTargetMarginPct(event.target.value)}
+                placeholder="20"
+              />
+            </label>
+
+            {pricing.recommendedSalePriceMxn ? (
+              <div className="rounded-xl bg-white p-3 ring-1 ring-teal-100">
+                <p className="text-xs text-stone-500">سعر البيع المقترح</p>
+                <p className="mt-1 text-2xl font-bold text-teal-900">
+                  {formatMoney(
+                    Math.ceil(pricing.recommendedSalePriceMxn),
+                    "MXN",
+                  )}
+                </p>
+                <p className="mt-1 text-xs text-teal-800">
+                  = {formatMoney(
+                    convertAmount(
+                      Math.ceil(pricing.recommendedSalePriceMxn),
+                      "MXN",
+                      "USD",
+                      snapshot,
+                    ),
+                    "USD",
+                  )}{" "}
+                  /{" "}
+                  {formatMoney(
+                    convertAmount(
+                      Math.ceil(pricing.recommendedSalePriceMxn),
+                      "MXN",
+                      "CAD",
+                      snapshot,
+                    ),
+                    "CAD",
+                  )}
+                </p>
+                <button
+                  className="cb-btn mt-3 w-full"
+                  type="button"
+                  onClick={() =>
+                    applyRecommendedPrice(pricing.recommendedSalePriceMxn!)
+                  }
+                >
+                  استخدم هذا السعر
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-amber-900">
+                أدخل التكاليف أولاً، أو الهامش المطلوب كبير جداً مقارنة بعمولة
+                Dropi.
+              </p>
+            )}
+
+            <dl className="grid grid-cols-3 gap-2 text-center text-xs">
+              {[20, 25, 30].map((margin) => {
+                const price = pricing.recommendedPricesMxn[margin];
+                return (
+                  <div
+                    key={margin}
+                    className="rounded-lg bg-white px-2 py-2 ring-1 ring-teal-100"
+                  >
+                    <dt className="text-stone-500">هامش {margin}%</dt>
+                    <dd className="mt-1 font-semibold text-teal-900">
+                      {price
+                        ? formatMoney(Math.ceil(price), "MXN")
+                        : "—"}
+                    </dd>
+                  </div>
+                );
+              })}
+            </dl>
+          </section>
+        ) : null}
+
+        <MoneyInput
+          id="sale"
+          label="سعر البيع المقترح"
+          hint="اختياري — للتحقق من هامش سعر محدد"
+          amount={form.sale_price_amount}
+          currency={form.sale_price_currency}
+          onAmountChange={(value) =>
+            setForm((current) => ({ ...current, sale_price_amount: value }))
+          }
+          onCurrencyChange={(value) =>
+            setForm((current) => ({ ...current, sale_price_currency: value }))
+          }
+          snapshot={snapshot}
+        />
+
+        {pricing && Number(form.sale_price_amount) > 0 ? (
           <div
             className={`rounded-2xl border p-4 ${
               pricing.isHealthy
