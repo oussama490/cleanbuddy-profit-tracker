@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3f6f4;
+  --foreground: #1c1917;
+  --card: #ffffff;
+  --primary: #0f766e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-cairo);
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-cairo), "Segoe UI", Tahoma, sans-serif;
+}
+
+@layer components {
+  .cb-input {
+    @apply min-h-12 w-full rounded-xl border border-stone-200 bg-white px-3 text-base text-stone-900 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20;
+  }
+
+  .cb-btn {
+    @apply min-h-12 rounded-xl bg-teal-700 px-4 text-base font-semibold text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .cb-card {
+    @apply rounded-2xl border border-stone-200 bg-white p-4 shadow-sm;
+  }
+}
