@@ -1,12 +1,24 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "cleanbuddy-profit-tracker",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-17",
   "compatibility_flags": [
     "nodejs_compat",
-    "nodejs_compat_populate_process_env"
+    "nodejs_compat_populate_process_env",
+    "global_fetch_strictly_public"
   ],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "observability": {
     "enabled": true
-  }
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "cleanbuddy-profit-tracker"
+    }
+  ]
 }
