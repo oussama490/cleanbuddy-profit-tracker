@@ -100,7 +100,7 @@ export function AppShell({
           {tab === "daily" ? (
             <DailyTracker entries={entries} products={products} />
           ) : (
-            <ProductCalculator products={products} />
+            <ProductCalculator products={products} entries={entries} />
           )}
 
           {passwordEnabled ? (

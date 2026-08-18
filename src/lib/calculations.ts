@@ -142,7 +142,7 @@ export function calculateProductPricing(
 
   const targetMargin = input.targetMarginPct ?? 20;
   const recommendedSalePriceMxn = salePriceForTargetMarginMxn(
-    fixedCostsMxn,
+    supplierMxn + shippingMxn + adsMxn,
     input.dropiCommissionPct,
     targetMargin,
   );

@@ -2,9 +2,19 @@
 
 import { deleteProduct, saveProduct } from "@/app/actions/products";
 import { calculateProductPricing } from "@/lib/calculations";
+import {
+  DEFAULT_CLICK_TO_ORDER_PCT,
+  DEFAULT_CONFIRMATION_PCT,
+  DEFAULT_DELIVERY_PCT,
+  DEFAULT_SAFETY_PCT,
+  costSharePct,
+  estimateAds,
+  historicalFunnel,
+  salePriceCoveringCpaMxn,
+} from "@/lib/ads";
 import { convertAmount, convertFromCad } from "@/lib/currency";
-import { formatMoney, formatNumber } from "@/lib/format";
-import type { Currency, ProductCalculation } from "@/lib/types";
+import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
+import type { Currency, DailyEntry, ProductCalculation } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { useDisplayCurrency } from "./DisplayCurrency";
@@ -27,21 +37,98 @@ const emptyForm = {
 
 export function ProductCalculator({
   products,
+  entries,
 }: {
   products: ProductCalculation[];
+  entries: DailyEntry[];
 }) {
   const router = useRouter();
   const { snapshot, error: ratesError } = useRates();
   const { currency: displayCurrency } = useDisplayCurrency();
+  const history = historicalFunnel(entries);
   const [form, setForm] = useState(emptyForm);
   const [targetMarginPct, setTargetMarginPct] = useState("20");
+  const [safetyPct, setSafetyPct] = useState(String(DEFAULT_SAFETY_PCT));
+  const [confirmationPct, setConfirmationPct] = useState(
+    history.confirmationPct
+      ? String(Math.round(history.confirmationPct))
+      : String(DEFAULT_CONFIRMATION_PCT),
+  );
+  const [deliveryPct, setDeliveryPct] = useState(
+    history.deliveryPct
+      ? String(Math.round(history.deliveryPct))
+      : String(DEFAULT_DELIVERY_PCT),
+  );
+  const [clickToOrderPct, setClickToOrderPct] = useState(
+    String(DEFAULT_CLICK_TO_ORDER_PCT),
+  );
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const supplierMxn = snapshot
+    ? convertAmount(
+        Number(form.supplier_cost_amount) || 0,
+        form.supplier_cost_currency,
+        "MXN",
+        snapshot,
+      )
+    : 0;
+  const shippingMxn = snapshot
+    ? convertAmount(
+        Number(form.shipping_cost_amount) || 0,
+        form.shipping_cost_currency,
+        "MXN",
+        snapshot,
+      )
+    : 0;
+  const saleMxn = snapshot
+    ? convertAmount(
+        Number(form.sale_price_amount) || 0,
+        form.sale_price_currency,
+        "MXN",
+        snapshot,
+      )
+    : 0;
+
+  const adsEstimate = useMemo(() => {
+    if (!snapshot || saleMxn <= 0) return null;
+    return estimateAds({
+      supplierMxn,
+      shippingMxn,
+      saleMxn,
+      dropiCommissionPct: Number(form.dropi_commission_pct) || 0,
+      confirmationPct: Number(confirmationPct) || 0,
+      deliveryPct: Number(deliveryPct) || 0,
+      safetyPct: Number(safetyPct) || 0,
+      clickToOrderPct: Number(clickToOrderPct) || 0,
+      snapshot,
+    });
+  }, [
+    snapshot,
+    saleMxn,
+    supplierMxn,
+    shippingMxn,
+    form.dropi_commission_pct,
+    confirmationPct,
+    deliveryPct,
+    safetyPct,
+    clickToOrderPct,
+  ]);
+
   const pricing = useMemo(() => {
     if (!snapshot) return null;
+    const adsAmount =
+      Number(form.ads_cost_per_order_amount) ||
+      (adsEstimate
+        ? convertAmount(
+            adsEstimate.recommendedCpaMxn,
+            "MXN",
+            form.ads_cost_per_order_currency,
+            snapshot,
+          )
+        : 0);
     return calculateProductPricing(
       {
         supplierCostAmount: Number(form.supplier_cost_amount) || 0,
@@ -51,13 +138,31 @@ export function ProductCalculator({
         dropiCommissionPct: Number(form.dropi_commission_pct) || 0,
         salePriceAmount: Number(form.sale_price_amount) || 0,
         salePriceCurrency: form.sale_price_currency,
-        adsCostPerOrderAmount: Number(form.ads_cost_per_order_amount) || 0,
+        adsCostPerOrderAmount: adsAmount,
         adsCostPerOrderCurrency: form.ads_cost_per_order_currency,
         targetMarginPct: Number(targetMarginPct) || 20,
       },
       snapshot,
     );
-  }, [form, snapshot, targetMarginPct]);
+  }, [form, snapshot, targetMarginPct, adsEstimate]);
+
+  const priceCoveringCpa = useMemo(() => {
+    if (!snapshot || !adsEstimate) return null;
+    return salePriceCoveringCpaMxn({
+      supplierMxn,
+      shippingMxn,
+      dropiCommissionPct: Number(form.dropi_commission_pct) || 0,
+      cpaMxn: adsEstimate.recommendedCpaMxn,
+      targetMarginPct: Number(targetMarginPct) || 20,
+    });
+  }, [
+    snapshot,
+    adsEstimate,
+    supplierMxn,
+    shippingMxn,
+    form.dropi_commission_pct,
+    targetMarginPct,
+  ]);
 
   const filtered = products.filter((product) =>
     product.product_name.toLowerCase().includes(query.trim().toLowerCase()),
@@ -83,6 +188,7 @@ export function ProductCalculator({
   function resetForm() {
     setForm(emptyForm);
     setTargetMarginPct("20");
+    setSafetyPct(String(DEFAULT_SAFETY_PCT));
   }
 
   function applyRecommendedPrice(priceMxn: number) {
@@ -92,6 +198,15 @@ export function ProductCalculator({
       sale_price_currency: "MXN",
     }));
     setMessage("تم تعبئة سعر البيع المقترح.");
+  }
+
+  function applyRecommendedCpa(cpaUsd: number) {
+    setForm((current) => ({
+      ...current,
+      ads_cost_per_order_amount: String(Math.round(cpaUsd * 100) / 100),
+      ads_cost_per_order_currency: "USD",
+    }));
+    setMessage("تم تعبئة أقصى CPA مقبول كتكلفة إعلان لكل طلب.");
   }
 
   function onSubmit(event: FormEvent) {
@@ -148,7 +263,7 @@ export function ProductCalculator({
           <div>
             <h2 className="text-lg font-semibold">حاسبة التسعير</h2>
             <p className="text-sm text-stone-500">
-              النتائج تتحدث فوراً حسب أسعار الصرف الحالية.
+              من تكلفة المنتج حتى أقصى إعلان مقبول وسعر البيع النهائي.
             </p>
           </div>
           {form.id ? (
@@ -217,9 +332,192 @@ export function ProductCalculator({
         </label>
 
         <MoneyInput
+          id="sale"
+          label="سعر البيع"
+          hint="أدخل سعراً تجريبياً لحساب أقصى إعلان مقبول"
+          amount={form.sale_price_amount}
+          currency={form.sale_price_currency}
+          onAmountChange={(value) =>
+            setForm((current) => ({ ...current, sale_price_amount: value }))
+          }
+          onCurrencyChange={(value) =>
+            setForm((current) => ({ ...current, sale_price_currency: value }))
+          }
+          snapshot={snapshot}
+        />
+
+        {snapshot ? (
+          <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold text-amber-950">
+                تقدير الإعلان لكل طلب (CPA)
+              </h3>
+              <p className="mt-1 text-xs text-amber-900/80">
+                أقصى CPA مقبول = الهامش الخام قبل الإعلان × نسبة التسليم من
+                الطلبات الجديدة × (1 − هامش الأمان). الإعلان يُدفع على كل طلب،
+                والربح يأتي من الطلبات المسلّمة فقط.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <PercentField
+                label="معدل التأكيد %"
+                value={confirmationPct}
+                onChange={setConfirmationPct}
+                hint={
+                  history.confirmationPct
+                    ? `من بياناتك: ${formatNumber(history.confirmationPct, 0)}%`
+                    : "افتراضي COD: 50%"
+                }
+              />
+              <PercentField
+                label="معدل التسليم %"
+                value={deliveryPct}
+                onChange={setDeliveryPct}
+                hint={
+                  history.deliveryPct
+                    ? `من بياناتك: ${formatNumber(history.deliveryPct, 0)}%`
+                    : "من المؤكد: 70%"
+                }
+              />
+              <PercentField
+                label="هامش الأمان %"
+                value={safetyPct}
+                onChange={setSafetyPct}
+                hint="احتفظ بربح بعد الإعلان"
+              />
+              <PercentField
+                label="تحويل النقرة لطلب %"
+                value={clickToOrderPct}
+                onChange={setClickToOrderPct}
+                hint="لحساب أقصى CPC"
+              />
+            </div>
+
+            {adsEstimate ? (
+              <>
+                <div
+                  className={`rounded-xl p-3 ${
+                    adsEstimate.verdict === "go"
+                      ? "bg-teal-700 text-white"
+                      : adsEstimate.verdict === "caution"
+                        ? "bg-amber-700 text-white"
+                        : "bg-red-700 text-white"
+                  }`}
+                >
+                  <p className="text-xs opacity-90">أقصى CPA مقبول لكل طلب جديد</p>
+                  <p className="mt-1 text-2xl font-bold">
+                    {formatMoney(adsEstimate.maxCpaUsd, "USD")}
+                  </p>
+                  <p className="mt-1 text-xs opacity-90">
+                    {formatMoney(adsEstimate.maxCpaMxn, "MXN")} /{" "}
+                    {formatMoney(adsEstimate.maxCpaCad, "CAD")}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold">
+                    {adsEstimate.verdict === "go"
+                      ? "المنتج قابل للإعلان — CPA مريح"
+                      : adsEstimate.verdict === "caution"
+                        ? "حساس: أعلن بحذر أو ارفع سعر البيع"
+                        : "غير مربح للإعلان بهذا السعر"}
+                  </p>
+                </div>
+
+                <dl className="grid grid-cols-2 gap-2 text-sm">
+                  <Stat
+                    label="الهامش الخام قبل الإعلان"
+                    value={formatMoney(adsEstimate.grossBeforeAdsMxn, "MXN")}
+                    sub={`${formatNumber(adsEstimate.grossBeforeAdsPct)}% من البيع`}
+                  />
+                  <Stat
+                    label="التسليم من الطلبات الجديدة"
+                    value={formatPercent(adsEstimate.deliveredOfNew)}
+                  />
+                  <Stat
+                    label="CPA نقطة التعادل"
+                    value={formatMoney(
+                      convertAmount(
+                        adsEstimate.breakEvenCpaMxn,
+                        "MXN",
+                        "USD",
+                        snapshot,
+                      ),
+                      "USD",
+                    )}
+                    sub="بدون هامش أمان"
+                  />
+                  <Stat
+                    label="أقصى CPC"
+                    value={
+                      adsEstimate.maxCpcUsd
+                        ? formatMoney(adsEstimate.maxCpcUsd, "USD")
+                        : "—"
+                    }
+                    sub="تكلفة النقرة القصوى"
+                  />
+                </dl>
+
+                <p className="text-xs text-amber-950">
+                  إذا أنفقت {formatMoney(adsEstimate.recommendedCpaUsd, "USD")}{" "}
+                  لكل طلب، يبقى صافي تقريبي{" "}
+                  {formatMoney(adsEstimate.netIfRecommendedMxn, "MXN")} (
+                  {formatNumber(adsEstimate.netIfRecommendedPct)}%).
+                </p>
+
+                <button
+                  className="cb-btn w-full"
+                  type="button"
+                  disabled={adsEstimate.maxCpaUsd <= 0}
+                  onClick={() => applyRecommendedCpa(adsEstimate.recommendedCpaUsd)}
+                >
+                  استخدم هذا الـ CPA في تكلفة الإعلان
+                </button>
+
+                {priceCoveringCpa ? (
+                  <div className="rounded-xl bg-white p-3 ring-1 ring-amber-200">
+                    <p className="text-xs text-stone-500">
+                      سعر البيع النهائي المطلوب لهامش {targetMarginPct}% مع هذا
+                      الـ CPA
+                    </p>
+                    <p className="mt-1 text-xl font-bold text-stone-900">
+                      {formatMoney(Math.ceil(priceCoveringCpa), "MXN")}
+                    </p>
+                    <button
+                      className="mt-2 text-sm font-semibold text-teal-800 underline"
+                      type="button"
+                      onClick={() => applyRecommendedPrice(priceCoveringCpa)}
+                    >
+                      استخدم سعر البيع النهائي
+                    </button>
+                  </div>
+                ) : null}
+
+                <CostBreakdown
+                  sale={saleMxn}
+                  supplier={adsEstimate.productCostMxn - shippingMxn}
+                  shipping={shippingMxn}
+                  commission={adsEstimate.commissionMxn}
+                  ads={convertAmount(
+                    Number(form.ads_cost_per_order_amount) || adsEstimate.recommendedCpaMxn,
+                    Number(form.ads_cost_per_order_amount)
+                      ? form.ads_cost_per_order_currency
+                      : "MXN",
+                    "MXN",
+                    snapshot,
+                  )}
+                />
+              </>
+            ) : (
+              <p className="text-sm text-amber-900">
+                أدخل سعر البيع أولاً لحساب أقصى إعلان مقبول.
+              </p>
+            )}
+          </section>
+        ) : null}
+
+        <MoneyInput
           id="ads-order"
           label="تكلفة الإعلان المقدّرة لكل طلب"
-          hint="تُدخل عادة بالدولار الأمريكي"
+          hint="يمكن تعبئتها تلقائياً من أقصى CPA أعلاه"
           amount={form.ads_cost_per_order_amount}
           currency={form.ads_cost_per_order_currency}
           onAmountChange={(value) =>
@@ -244,8 +542,8 @@ export function ProductCalculator({
                 لا تعرف بكم تبيع؟
               </h3>
               <p className="mt-1 text-xs text-teal-900/80">
-                أدخل تكلفة المورد والتوصيل والإعلانات، ثم اختر الهامش المطلوب
-                لمعرفة سعر البيع المناسب.
+                يحسب السعر ليشمل تكلفة المنتج والتوصيل والإعلان والعمولة مع
+                الهامش المطلوب.
               </p>
             </div>
 
@@ -347,21 +645,6 @@ export function ProductCalculator({
           </section>
         ) : null}
 
-        <MoneyInput
-          id="sale"
-          label="سعر البيع المقترح"
-          hint="اختياري — للتحقق من هامش سعر محدد"
-          amount={form.sale_price_amount}
-          currency={form.sale_price_currency}
-          onAmountChange={(value) =>
-            setForm((current) => ({ ...current, sale_price_amount: value }))
-          }
-          onCurrencyChange={(value) =>
-            setForm((current) => ({ ...current, sale_price_currency: value }))
-          }
-          snapshot={snapshot}
-        />
-
         {pricing && Number(form.sale_price_amount) > 0 ? (
           <div
             className={`rounded-2xl border p-4 ${
@@ -377,7 +660,7 @@ export function ProductCalculator({
             </p>
             <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-stone-600">الهامش الصافي</dt>
+                <dt className="text-stone-600">الهامش الصافي بعد الإعلان</dt>
                 <dd className="font-semibold">
                   {formatMoney(pricing.netMarginMxn, "MXN")}
                   <span className="mt-0.5 block text-xs font-normal">
@@ -440,6 +723,35 @@ export function ProductCalculator({
                 },
                 product.exchange_rate_snapshot,
               );
+              const sale = convertAmount(
+                product.sale_price_amount,
+                product.sale_price_currency,
+                "MXN",
+                product.exchange_rate_snapshot,
+              );
+              const supplier = convertAmount(
+                product.supplier_cost_amount,
+                product.supplier_cost_currency,
+                "MXN",
+                product.exchange_rate_snapshot,
+              );
+              const shipping = convertAmount(
+                product.shipping_cost_amount,
+                product.shipping_cost_currency,
+                "MXN",
+                product.exchange_rate_snapshot,
+              );
+              const estimate = estimateAds({
+                supplierMxn: supplier,
+                shippingMxn: shipping,
+                saleMxn: sale,
+                dropiCommissionPct: product.dropi_commission_pct,
+                confirmationPct: Number(confirmationPct) || DEFAULT_CONFIRMATION_PCT,
+                deliveryPct: Number(deliveryPct) || DEFAULT_DELIVERY_PCT,
+                safetyPct: Number(safetyPct) || DEFAULT_SAFETY_PCT,
+                clickToOrderPct: Number(clickToOrderPct) || DEFAULT_CLICK_TO_ORDER_PCT,
+                snapshot: product.exchange_rate_snapshot,
+              });
               const marginDisplay = convertFromCad(
                 result.netMarginCad,
                 displayCurrency,
@@ -468,9 +780,9 @@ export function ProductCalculator({
                     {formatMoney(marginDisplay, displayCurrency)}
                   </p>
                   <p className="text-xs text-stone-500">
-                    حد أدنى:{" "}
-                    {Number.isFinite(result.minSalePriceMxn)
-                      ? formatMoney(result.minSalePriceMxn, "MXN")
+                    أقصى CPA:{" "}
+                    {estimate
+                      ? formatMoney(estimate.maxCpaUsd, "USD")
                       : "—"}
                   </p>
                   <div className="mt-3 flex gap-3">
@@ -495,6 +807,101 @@ export function ProductCalculator({
           )}
         </ul>
       </section>
+    </div>
+  );
+}
+
+function PercentField({
+  label,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  hint?: string;
+}) {
+  return (
+    <label className="block space-y-1">
+      <span className="text-xs font-medium text-stone-700">{label}</span>
+      <input
+        className="cb-input"
+        inputMode="decimal"
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {hint ? <span className="block text-[11px] text-stone-500">{hint}</span> : null}
+    </label>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+}) {
+  return (
+    <div className="rounded-xl bg-white p-3 ring-1 ring-amber-100">
+      <dt className="text-xs text-stone-500">{label}</dt>
+      <dd className="mt-1 font-semibold text-stone-900">{value}</dd>
+      {sub ? <p className="mt-0.5 text-[11px] text-stone-500">{sub}</p> : null}
+    </div>
+  );
+}
+
+function CostBreakdown({
+  sale,
+  supplier,
+  shipping,
+  commission,
+  ads,
+}: {
+  sale: number;
+  supplier: number;
+  shipping: number;
+  commission: number;
+  ads: number;
+}) {
+  const rows = [
+    { label: "المورد", value: supplier, color: "bg-stone-400" },
+    { label: "التوصيل", value: shipping, color: "bg-stone-500" },
+    { label: "Dropi", value: commission, color: "bg-amber-500" },
+    { label: "إعلان", value: ads, color: "bg-orange-500" },
+  ];
+  const profit = sale - supplier - shipping - commission - ads;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-stone-700">توزيع سعر البيع</p>
+      <div className="flex h-3 overflow-hidden rounded-full bg-stone-200">
+        {rows.map((row) => (
+          <div
+            key={row.label}
+            className={row.color}
+            style={{ width: `${Math.max(costSharePct(row.value, sale), 0)}%` }}
+          />
+        ))}
+        <div
+          className={profit >= 0 ? "bg-teal-600" : "bg-red-600"}
+          style={{ width: `${Math.max(costSharePct(Math.abs(profit), sale), 0)}%` }}
+        />
+      </div>
+      <ul className="grid grid-cols-2 gap-1 text-[11px] text-stone-600">
+        {rows.map((row) => (
+          <li key={row.label}>
+            {row.label}: {formatNumber(costSharePct(row.value, sale), 0)}%
+          </li>
+        ))}
+        <li>
+          ربح: {formatNumber(costSharePct(profit, sale), 0)}%
+        </li>
+      </ul>
     </div>
   );
 }
