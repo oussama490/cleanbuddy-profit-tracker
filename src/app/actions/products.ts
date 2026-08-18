@@ -1,5 +1,6 @@
 "use server";
 
+import { parseProductOps } from "@/lib/commerce";
 import { isCurrency, isValidSnapshot } from "@/lib/currency";
 import { getSupabase, humanizeSupabaseError, isSupabaseConfigured } from "@/lib/supabase";
 import type {
@@ -9,7 +10,7 @@ import type {
   ProductCalculation,
   ProductCalculationInput,
 } from "@/lib/types";
-import { revalidatePath } from "next/cache";
+import { revalidateApp } from "@/lib/revalidate";
 
 function toNumber(value: unknown): number {
   const parsed = Number(value);
@@ -40,6 +41,7 @@ function parseProduct(row: Record<string, unknown>): ProductCalculation {
       ? (row.ads_cost_per_order_currency as Currency)
       : "USD",
     exchange_rate_snapshot: row.exchange_rate_snapshot as ExchangeRateSnapshot,
+    ops: parseProductOps(row.ops),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
@@ -59,6 +61,13 @@ export async function listProducts(): Promise<ProductCalculation[]> {
   return (data ?? []).map((row) =>
     parseProduct(row as Record<string, unknown>),
   );
+}
+
+export async function getProduct(
+  id: string,
+): Promise<ProductCalculation | null> {
+  const products = await listProducts();
+  return products.find((product) => product.id === id) ?? null;
 }
 
 export async function saveProduct(
@@ -86,22 +95,44 @@ export async function saveProduct(
     ads_cost_per_order_amount: input.ads_cost_per_order_amount,
     ads_cost_per_order_currency: input.ads_cost_per_order_currency,
     exchange_rate_snapshot: input.exchange_rate_snapshot,
+    ops: parseProductOps(input.ops),
   };
 
   const supabase = getSupabase();
 
   if (input.id) {
-    const { error } = await supabase
+    const first = await supabase
       .from("product_calculations")
       .update(payload)
       .eq("id", input.id);
-    if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
+    if (!first.error) {
+      revalidateApp();
+      return { ok: true, message: "تم حفظ تقييم المنتج." };
+    }
+    if (!String(first.error.message).includes("ops")) {
+      return { ok: false, error: humanizeSupabaseError(first.error.message) };
+    }
+    const { ops: _ops, ...withoutOps } = payload;
+    const retry = await supabase
+      .from("product_calculations")
+      .update(withoutOps)
+      .eq("id", input.id);
+    if (retry.error) return { ok: false, error: humanizeSupabaseError(retry.error.message) };
   } else {
-    const { error } = await supabase.from("product_calculations").insert(payload);
-    if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
+    const first = await supabase.from("product_calculations").insert(payload);
+    if (!first.error) {
+      revalidateApp();
+      return { ok: true, message: "تم حفظ تقييم المنتج." };
+    }
+    if (!String(first.error.message).includes("ops")) {
+      return { ok: false, error: humanizeSupabaseError(first.error.message) };
+    }
+    const { ops: _ops, ...withoutOps } = payload;
+    const retry = await supabase.from("product_calculations").insert(withoutOps);
+    if (retry.error) return { ok: false, error: humanizeSupabaseError(retry.error.message) };
   }
 
-  revalidatePath("/");
+  revalidateApp();
   return { ok: true, message: "تم حفظ تقييم المنتج." };
 }
 
@@ -116,6 +147,6 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
     .eq("id", id);
 
   if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
-  revalidatePath("/");
+  revalidateApp();
   return { ok: true, message: "تم حذف المنتج." };
 }

@@ -1,5 +1,5 @@
 import { convertAmount, convertToCad } from "./currency";
-import type { Currency, DailyEntry, ExchangeRateSnapshot } from "./types";
+import type { DailyEntry, ExchangeRateSnapshot } from "./types";
 
 export const DEFAULT_CONFIRMATION_PCT = 50;
 export const DEFAULT_DELIVERY_PCT = 70;

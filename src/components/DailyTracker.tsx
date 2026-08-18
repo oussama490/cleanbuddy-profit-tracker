@@ -10,6 +10,13 @@ import {
   productUnitCogsCad,
 } from "@/lib/calculations";
 import { convertFromCad } from "@/lib/currency";
+import {
+  addDaysIso,
+  FULFILLMENT_APPS,
+  fulfillmentLabel,
+  type FulfillmentApp,
+  type SalesModel,
+} from "@/lib/commerce";
 import { formatDisplayDate, formatMoney, formatPercent, todayIsoDate } from "@/lib/format";
 import type {
   Currency,
@@ -22,6 +29,7 @@ import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { DailyChart } from "./DailyChart";
 import { useDisplayCurrency } from "./DisplayCurrency";
 import { MoneyInput } from "./MoneyInput";
+import { usePrefs } from "./PrefsProvider";
 import { useRates } from "./RatesProvider";
 
 type DailyTrackerProps = {
@@ -46,7 +54,11 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
   const router = useRouter();
   const { snapshot, error: ratesError } = useRates();
   const { currency: displayCurrency } = useDisplayCurrency();
+  const { shop, t, lang } = usePrefs();
   const [form, setForm] = useState(emptyForm);
+  const [salesModel, setSalesModel] = useState<SalesModel>(shop.salesModel);
+  const [fulfillment, setFulfillment] = useState<FulfillmentApp>(shop.fulfillment);
+  const [customApp, setCustomApp] = useState(shop.customApp);
   const [savedSnapshot, setSavedSnapshot] = useState<ExchangeRateSnapshot | null>(
     null,
   );
@@ -83,10 +95,15 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
         source: "frankfurter",
         toCad: { MXN: 0, USD: 0, CAD: 1 },
       },
+      ops: {
+        sales_model: salesModel,
+        fulfillment,
+        fulfillment_custom: customApp,
+      },
       created_at: "",
       updated_at: "",
     }),
-    [form, activeSnapshot],
+    [form, activeSnapshot, salesModel, fulfillment, customApp],
   );
 
   const previewProfitCad = activeSnapshot
@@ -109,9 +126,37 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
       ads_cost_amount: String(entry.ads_cost_amount),
       ads_cost_currency: entry.ads_cost_currency,
     });
-    setSavedSnapshot(entry.exchange_rate_snapshot);
-    setMessage("تم تحميل الإدخال للتعديل.");
+    setSalesModel(entry.ops.sales_model);
+    setFulfillment(entry.ops.fulfillment);
+    setCustomApp(entry.ops.fulfillment_custom);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function copyPrevious() {
+    const previousDate = addDaysIso(form.entry_date || todayIsoDate(), -1);
+    const previous =
+      entries.find((entry) => entry.entry_date === previousDate) ?? entries[0];
+    if (!previous) {
+      setError(lang === "fr" ? "Aucun jour précédent." : "لا يوجد يوم سابق.");
+      return;
+    }
+    setForm({
+      id: "",
+      entry_date: form.entry_date || todayIsoDate(),
+      new_orders: String(previous.new_orders),
+      confirmed: String(previous.confirmed),
+      delivered: String(previous.delivered),
+      returned: String(previous.returned),
+      revenue_amount: String(previous.revenue_amount),
+      revenue_currency: previous.revenue_currency,
+      ads_cost_amount: String(previous.ads_cost_amount),
+      ads_cost_currency: previous.ads_cost_currency,
+    });
+    setSalesModel(previous.ops.sales_model);
+    setFulfillment(previous.ops.fulfillment);
+    setCustomApp(previous.ops.fulfillment_custom);
+    setSavedSnapshot(null);
+    setMessage(t("copy.yesterday"));
   }
 
   function resetForm() {
@@ -140,6 +185,11 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
         ads_cost_amount: Number(form.ads_cost_amount) || 0,
         ads_cost_currency: form.ads_cost_currency,
         exchange_rate_snapshot: activeSnapshot,
+        ops: {
+          sales_model: salesModel,
+          fulfillment,
+          fulfillment_custom: customApp,
+        },
       });
 
       if (!result.ok) {
@@ -175,10 +225,14 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
             <p className="text-sm text-stone-500">التاريخ الافتراضي هو اليوم، ويمكن تعديله.</p>
           </div>
           {form.id ? (
-            <button className="text-sm text-teal-800 underline" type="button" onClick={resetForm}>
+            <button className="text-sm text-forest-mid underline" type="button" onClick={resetForm}>
               إدخال جديد
             </button>
-          ) : null}
+          ) : (
+            <button className="cb-btn-ghost min-h-9 px-3 text-xs" type="button" onClick={copyPrevious}>
+              {t("copy.yesterday")}
+            </button>
+          )}
         </div>
 
         <label className="block space-y-2">
@@ -194,24 +248,63 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
           />
         </label>
 
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">نموذج البيع</span>
+            <select
+              className="cb-input"
+              value={salesModel}
+              onChange={(event) => setSalesModel(event.target.value as SalesModel)}
+            >
+              <option value="cod">{t("model.cod")}</option>
+              <option value="prepaid">{t("model.prepaid")}</option>
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">التطبيق / المستودع</span>
+            <select
+              className="cb-input"
+              value={fulfillment}
+              onChange={(event) => setFulfillment(event.target.value as FulfillmentApp)}
+            >
+              {FULFILLMENT_APPS.map((app) => (
+                <option key={app} value={app}>
+                  {fulfillmentLabel(app, customApp, lang)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {fulfillment === "custom" ? (
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">{t("app.custom")}</span>
+            <input
+              className="cb-input"
+              value={customApp}
+              onChange={(event) => setCustomApp(event.target.value)}
+              placeholder="CJ, Zendrop, AutoDS..."
+            />
+          </label>
+        ) : null}
+
         <div className="grid grid-cols-2 gap-3">
           <NumberField
-            label="طلبات جديدة"
+            label={t("funnel.new")}
             value={form.new_orders}
             onChange={(value) => setForm((current) => ({ ...current, new_orders: value }))}
           />
           <NumberField
-            label="مؤكدة"
+            label={salesModel === "prepaid" ? t("funnel.paid") : t("funnel.confirmed")}
             value={form.confirmed}
             onChange={(value) => setForm((current) => ({ ...current, confirmed: value }))}
           />
           <NumberField
-            label="مسلّمة"
+            label={salesModel === "prepaid" ? t("funnel.shipped") : t("funnel.delivered")}
             value={form.delivered}
             onChange={(value) => setForm((current) => ({ ...current, delivered: value }))}
           />
           <NumberField
-            label="مرتجعة / مرفوضة"
+            label={salesModel === "prepaid" ? t("funnel.refunds") : t("funnel.returned")}
             value={form.returned}
             onChange={(value) => setForm((current) => ({ ...current, returned: value }))}
           />
@@ -270,7 +363,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
                 )
               : "—"}
             {products.length === 0
-              ? " — احفظ منتجاً في التبويب الثاني لاحتساب أدق."
+              ? " — احفظ منتجاً في صفحة المنتجات لاحتساب أدق."
               : null}
           </p>
         </label>

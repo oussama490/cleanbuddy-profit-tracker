@@ -3,6 +3,13 @@
 import { deleteProduct, saveProduct } from "@/app/actions/products";
 import { calculateProductPricing } from "@/lib/calculations";
 import {
+  commissionLabel,
+  FULFILLMENT_APPS,
+  type FulfillmentApp,
+  type ProductDecision,
+  type SalesModel,
+} from "@/lib/commerce";
+import {
   DEFAULT_CLICK_TO_ORDER_PCT,
   DEFAULT_CONFIRMATION_PCT,
   DEFAULT_DELIVERY_PCT,
@@ -19,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { useDisplayCurrency } from "./DisplayCurrency";
 import { MoneyInput } from "./MoneyInput";
+import { usePrefs } from "./PrefsProvider";
 import { useRates } from "./RatesProvider";
 
 const emptyForm = {
@@ -38,15 +46,52 @@ const emptyForm = {
 export function ProductCalculator({
   products,
   entries,
+  initialProduct = null,
 }: {
   products: ProductCalculation[];
   entries: DailyEntry[];
+  initialProduct?: ProductCalculation | null;
 }) {
   const router = useRouter();
   const { snapshot, error: ratesError } = useRates();
   const { currency: displayCurrency } = useDisplayCurrency();
+  const { shop, t, lang } = usePrefs();
   const history = historicalFunnel(entries);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState(() =>
+    initialProduct
+      ? {
+          id: initialProduct.id,
+          product_name: initialProduct.product_name,
+          supplier_cost_amount: String(initialProduct.supplier_cost_amount),
+          supplier_cost_currency: initialProduct.supplier_cost_currency,
+          shipping_cost_amount: String(initialProduct.shipping_cost_amount),
+          shipping_cost_currency: initialProduct.shipping_cost_currency,
+          dropi_commission_pct: String(initialProduct.dropi_commission_pct),
+          sale_price_amount: String(initialProduct.sale_price_amount),
+          sale_price_currency: initialProduct.sale_price_currency,
+          ads_cost_per_order_amount: String(initialProduct.ads_cost_per_order_amount),
+          ads_cost_per_order_currency: initialProduct.ads_cost_per_order_currency,
+        }
+      : emptyForm,
+  );
+  const [salesModel, setSalesModel] = useState<SalesModel>(
+    initialProduct?.ops.sales_model ?? shop.salesModel,
+  );
+  const [fulfillment, setFulfillment] = useState<FulfillmentApp>(
+    initialProduct?.ops.fulfillment ?? shop.fulfillment,
+  );
+  const [customApp, setCustomApp] = useState(
+    initialProduct?.ops.fulfillment_custom ?? shop.customApp,
+  );
+  const [shopifyUrl, setShopifyUrl] = useState(
+    initialProduct?.ops.shopify_url ?? shop.shopifyUrl,
+  );
+  const [decision, setDecision] = useState<ProductDecision>(
+    initialProduct?.ops.decision ?? "watch",
+  );
+  const [decisionNote, setDecisionNote] = useState(
+    initialProduct?.ops.decision_note ?? "",
+  );
   const [targetMarginPct, setTargetMarginPct] = useState("20");
   const [safetyPct, setSafetyPct] = useState(String(DEFAULT_SAFETY_PCT));
   const [confirmationPct, setConfirmationPct] = useState(
@@ -182,6 +227,12 @@ export function ProductCalculator({
       ads_cost_per_order_amount: String(product.ads_cost_per_order_amount),
       ads_cost_per_order_currency: product.ads_cost_per_order_currency,
     });
+    setSalesModel(product.ops.sales_model);
+    setFulfillment(product.ops.fulfillment);
+    setCustomApp(product.ops.fulfillment_custom);
+    setShopifyUrl(product.ops.shopify_url);
+    setDecision(product.ops.decision);
+    setDecisionNote(product.ops.decision_note);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -189,6 +240,12 @@ export function ProductCalculator({
     setForm(emptyForm);
     setTargetMarginPct("20");
     setSafetyPct(String(DEFAULT_SAFETY_PCT));
+    setSalesModel(shop.salesModel);
+    setFulfillment(shop.fulfillment);
+    setCustomApp(shop.customApp);
+    setShopifyUrl(shop.shopifyUrl);
+    setDecision("watch");
+    setDecisionNote("");
   }
 
   function applyRecommendedPrice(priceMxn: number) {
@@ -231,6 +288,14 @@ export function ProductCalculator({
         ads_cost_per_order_amount: Number(form.ads_cost_per_order_amount) || 0,
         ads_cost_per_order_currency: form.ads_cost_per_order_currency,
         exchange_rate_snapshot: snapshot,
+        ops: {
+          sales_model: salesModel,
+          fulfillment,
+          fulfillment_custom: customApp,
+          shopify_url: shopifyUrl,
+          decision,
+          decision_note: decisionNote,
+        },
       });
       if (!result.ok) {
         setError(result.error);
@@ -285,6 +350,82 @@ export function ProductCalculator({
           />
         </label>
 
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">نموذج البيع</span>
+            <select
+              className="cb-input"
+              value={salesModel}
+              onChange={(event) => setSalesModel(event.target.value as SalesModel)}
+            >
+              <option value="cod">{t("model.cod")}</option>
+              <option value="prepaid">{t("model.prepaid")}</option>
+            </select>
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">التطبيق</span>
+            <select
+              className="cb-input"
+              value={fulfillment}
+              onChange={(event) => setFulfillment(event.target.value as FulfillmentApp)}
+            >
+              {FULFILLMENT_APPS.map((app) => (
+                <option key={app} value={app}>
+                  {t(`app.${app}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        {fulfillment === "custom" ? (
+          <input
+            className="cb-input"
+            value={customApp}
+            onChange={(event) => setCustomApp(event.target.value)}
+            placeholder="Zendrop, AutoDS, app name..."
+          />
+        ) : null}
+        {fulfillment === "shopify" || salesModel === "prepaid" ? (
+          <label className="block space-y-2">
+            <span className="text-sm font-medium">رابط Shopify / المنتج</span>
+            <input
+              className="cb-input"
+              value={shopifyUrl}
+              onChange={(event) => setShopifyUrl(event.target.value)}
+              placeholder="https://..."
+            />
+          </label>
+        ) : null}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">القرار</p>
+          <div className="grid grid-cols-3 gap-2">
+            {(["scale", "watch", "kill"] as ProductDecision[]).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setDecision(value)}
+                className={`min-h-11 rounded-2xl text-sm font-semibold ${
+                  decision === value
+                    ? value === "kill"
+                      ? "bg-loss text-white"
+                      : value === "scale"
+                        ? "bg-profit text-white"
+                        : "bg-forest text-white"
+                    : "border border-line bg-card"
+                }`}
+              >
+                {t(`decision.${value}`)}
+              </button>
+            ))}
+          </div>
+          <input
+            className="cb-input"
+            value={decisionNote}
+            onChange={(event) => setDecisionNote(event.target.value)}
+            placeholder={lang === "fr" ? "Pourquoi cette décision ?" : "لماذا هذا القرار؟"}
+          />
+        </div>
+
         <MoneyInput
           id="supplier"
           label="تكلفة المنتج من المورد"
@@ -315,7 +456,9 @@ export function ProductCalculator({
         />
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-stone-700">عمولة Dropi (%)</span>
+          <span className="text-sm font-medium text-stone-700">
+            {commissionLabel(fulfillment, lang)}
+          </span>
           <input
             className="cb-input"
             inputMode="decimal"

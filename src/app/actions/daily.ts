@@ -1,5 +1,6 @@
 "use server";
 
+import { parseDailyOps } from "@/lib/commerce";
 import { isCurrency, isValidSnapshot } from "@/lib/currency";
 import { getSupabase, humanizeSupabaseError, isSupabaseConfigured } from "@/lib/supabase";
 import type {
@@ -9,7 +10,7 @@ import type {
   DailyEntryInput,
   ExchangeRateSnapshot,
 } from "@/lib/types";
-import { revalidatePath } from "next/cache";
+import { revalidateApp } from "@/lib/revalidate";
 
 function toNumber(value: unknown): number {
   const parsed = Number(value);
@@ -33,6 +34,7 @@ function parseEntry(row: Record<string, unknown>): DailyEntry {
       ? (row.ads_cost_currency as Currency)
       : "USD",
     exchange_rate_snapshot: row.exchange_rate_snapshot as ExchangeRateSnapshot,
+    ops: parseDailyOps(row.ops),
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
@@ -61,6 +63,43 @@ export async function tablesReady(): Promise<boolean> {
   return !error;
 }
 
+async function persistDaily(
+  payload: Record<string, unknown>,
+  id?: string,
+): Promise<ActionResult> {
+  const supabase = getSupabase();
+  const withOps = { ...payload };
+  if (id) {
+    const first = await supabase.from("daily_entries").update(withOps).eq("id", id);
+    if (!first.error) {
+      revalidateApp();
+      return { ok: true, message: "تم حفظ الإدخال اليومي." };
+    }
+    if (!String(first.error.message).includes("ops")) {
+      return { ok: false, error: humanizeSupabaseError(first.error.message) };
+    }
+    const { ops: _ops, ...withoutOps } = withOps;
+    const retry = await supabase.from("daily_entries").update(withoutOps).eq("id", id);
+    if (retry.error) return { ok: false, error: humanizeSupabaseError(retry.error.message) };
+  } else {
+    const first = await supabase.from("daily_entries").upsert(withOps, { onConflict: "entry_date" });
+    if (!first.error) {
+      revalidateApp();
+      return { ok: true, message: "تم حفظ الإدخال اليومي." };
+    }
+    if (!String(first.error.message).includes("ops")) {
+      return { ok: false, error: humanizeSupabaseError(first.error.message) };
+    }
+    const { ops: _ops, ...withoutOps } = withOps;
+    const retry = await supabase
+      .from("daily_entries")
+      .upsert(withoutOps, { onConflict: "entry_date" });
+    if (retry.error) return { ok: false, error: humanizeSupabaseError(retry.error.message) };
+  }
+  revalidateApp();
+  return { ok: true, message: "تم حفظ الإدخال اليومي." };
+}
+
 export async function saveDailyEntry(
   input: DailyEntryInput,
 ): Promise<ActionResult> {
@@ -71,36 +110,22 @@ export async function saveDailyEntry(
     return { ok: false, error: "Taux de change manquant." };
   }
 
-  const payload = {
-    entry_date: input.entry_date,
-    new_orders: input.new_orders,
-    confirmed: input.confirmed,
-    delivered: input.delivered,
-    returned: input.returned,
-    revenue_amount: input.revenue_amount,
-    revenue_currency: input.revenue_currency,
-    ads_cost_amount: input.ads_cost_amount,
-    ads_cost_currency: input.ads_cost_currency,
-    exchange_rate_snapshot: input.exchange_rate_snapshot,
-  };
-
-  const supabase = getSupabase();
-
-  if (input.id) {
-    const { error } = await supabase
-      .from("daily_entries")
-      .update(payload)
-      .eq("id", input.id);
-    if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
-  } else {
-    const { error } = await supabase
-      .from("daily_entries")
-      .upsert(payload, { onConflict: "entry_date" });
-    if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
-  }
-
-  revalidatePath("/");
-  return { ok: true, message: "تم حفظ الإدخال اليومي." };
+  return persistDaily(
+    {
+      entry_date: input.entry_date,
+      new_orders: input.new_orders,
+      confirmed: input.confirmed,
+      delivered: input.delivered,
+      returned: input.returned,
+      revenue_amount: input.revenue_amount,
+      revenue_currency: input.revenue_currency,
+      ads_cost_amount: input.ads_cost_amount,
+      ads_cost_currency: input.ads_cost_currency,
+      exchange_rate_snapshot: input.exchange_rate_snapshot,
+      ops: parseDailyOps(input.ops),
+    },
+    input.id,
+  );
 }
 
 export async function deleteDailyEntry(id: string): Promise<ActionResult> {
@@ -114,6 +139,6 @@ export async function deleteDailyEntry(id: string): Promise<ActionResult> {
     .eq("id", id);
 
   if (error) return { ok: false, error: humanizeSupabaseError(error.message) };
-  revalidatePath("/");
+  revalidateApp();
   return { ok: true, message: "تم حذف الإدخال." };
 }

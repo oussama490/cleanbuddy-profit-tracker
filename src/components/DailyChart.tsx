@@ -63,10 +63,10 @@ export function DailyChart({
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#e7e5e4" strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#57534e" }} />
+            <CartesianGrid stroke="#e4dbce" strokeDasharray="3 3" />
+            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#6f675c" }} />
             <YAxis
-              tick={{ fontSize: 11, fill: "#57534e" }}
+              tick={{ fontSize: 11, fill: "#6f675c" }}
               width={56}
               tickFormatter={(value: number) =>
                 new Intl.NumberFormat("en", { notation: "compact" }).format(value)
@@ -84,14 +84,14 @@ export function DailyChart({
             <Line
               type="monotone"
               dataKey="revenue"
-              stroke="#0f766e"
+              stroke="#1c4a43"
               strokeWidth={2}
               dot={false}
             />
             <Line
               type="monotone"
               dataKey="profit"
-              stroke="#b45309"
+              stroke="#b0894d"
               strokeWidth={2}
               dot={false}
             />

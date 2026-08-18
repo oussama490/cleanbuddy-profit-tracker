@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
+import type { ReactNode } from "react";
+import { PrefsProvider } from "@/components/PrefsProvider";
 import "./globals.css";
 
 const cairo = Cairo({
@@ -9,21 +11,26 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: "تتبع أرباح كلينبادي",
-  description: "متابعة الأداء اليومي وتسعير منتجات Cleanbuddy",
+  title: "Cleanbuddy",
+  description: "Suivi personnel du profit Cleanbuddy",
+  appleWebApp: {
+    capable: true,
+    title: "Cleanbuddy",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f766e",
+  themeColor: "#12211d",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
       <body className="min-h-full bg-background font-sans text-foreground">
-        {children}
+        <PrefsProvider>{children}</PrefsProvider>
       </body>
     </html>
   );

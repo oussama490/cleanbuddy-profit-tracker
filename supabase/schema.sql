@@ -1,5 +1,7 @@
 -- Cleanbuddy profit tracker
 -- Run this in the Supabase SQL editor.
+-- Safe to re-run: existing daily/product data is kept.
+-- Adds workspace_records for journal, goals, cash, and suppliers.
 
 create table if not exists public.daily_entries (
   id uuid primary key default gen_random_uuid(),
@@ -15,6 +17,7 @@ create table if not exists public.daily_entries (
   ads_cost_currency text not null default 'USD'
     check (ads_cost_currency in ('MXN', 'USD', 'CAD')),
   exchange_rate_snapshot jsonb not null,
+  ops jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -36,6 +39,7 @@ create table if not exists public.product_calculations (
   ads_cost_per_order_currency text not null default 'USD'
     check (ads_cost_per_order_currency in ('MXN', 'USD', 'CAD')),
   exchange_rate_snapshot jsonb not null,
+  ops jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -59,6 +63,36 @@ create policy "daily_entries_all"
 drop policy if exists "product_calculations_all" on public.product_calculations;
 create policy "product_calculations_all"
   on public.product_calculations
+  for all
+  using (true)
+  with check (true);
+
+-- Personal workspace: journal, goals, cash movements, suppliers
+create table if not exists public.workspace_records (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in (
+    'journal', 'goal', 'cash', 'supplier',
+    'checklist', 'bill', 'payout', 'creative', 'review', 'expense', 'shop'
+  )),
+  title text not null default '',
+  body text not null default '',
+  amount numeric(14, 4) not null default 0,
+  currency text not null default 'CAD'
+    check (currency in ('MXN', 'USD', 'CAD')),
+  entry_date date,
+  meta jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists workspace_records_kind_idx
+  on public.workspace_records (kind, created_at desc);
+
+alter table public.workspace_records enable row level security;
+
+drop policy if exists "workspace_records_all" on public.workspace_records;
+create policy "workspace_records_all"
+  on public.workspace_records
   for all
   using (true)
   with check (true);
