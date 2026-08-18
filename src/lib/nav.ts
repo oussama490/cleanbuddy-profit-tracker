@@ -2,6 +2,7 @@ export type NavItem = {
   href: string;
   labelKey: string;
   hintKey: string;
+  shortKey: string;
   icon:
     | "home"
     | "day"
@@ -25,62 +26,65 @@ export type NavItem = {
     | "bill";
 };
 
-export const NAV_GROUPS: {
-  titleKey: string;
-  items: NavItem[];
-}[] = [
-  {
-    titleKey: "group.overview",
-    items: [
-      { href: "/", labelKey: "nav.home", hintKey: "nav.homeHint", icon: "home" },
-      { href: "/daily", labelKey: "nav.daily", hintKey: "nav.dailyHint", icon: "day" },
-      { href: "/calendar", labelKey: "nav.calendar", hintKey: "nav.calendarHint", icon: "cal" },
-      { href: "/checklist", labelKey: "nav.checklist", hintKey: "nav.checklistHint", icon: "check" },
-      { href: "/reports", labelKey: "nav.reports", hintKey: "nav.reportsHint", icon: "report" },
-    ],
-  },
+function item(
+  href: string,
+  labelKey: string,
+  hintKey: string,
+  icon: NavItem["icon"],
+  shortKey = labelKey,
+): NavItem {
+  return { href, labelKey, hintKey, icon, shortKey };
+}
+
+export const PRIMARY_NAV: NavItem[] = [
+  item("/", "nav.home", "nav.homeHint", "home", "nav.tab.home"),
+  item("/daily", "nav.daily", "nav.dailyHint", "day", "nav.tab.daily"),
+  item("/products", "nav.products", "nav.productsHint", "box", "nav.tab.products"),
+  item("/ads", "nav.ads", "nav.adsHint", "ads", "nav.tab.ads"),
+  item("/reports", "nav.reports", "nav.reportsHint", "report", "nav.tab.reports"),
+];
+
+export const SETTINGS_NAV = item(
+  "/settings",
+  "nav.settings",
+  "nav.settingsHint",
+  "gear",
+  "nav.tab.settings",
+);
+
+export const ADVANCED_NAV: NavItem[] = [
+  item("/funnel", "nav.funnel", "nav.funnelHint", "funnel"),
+  item("/simulate", "nav.simulate", "nav.simulateHint", "lab"),
+  item("/treasury", "nav.treasury", "nav.treasuryHint", "cash"),
+  item("/goals", "nav.goals", "nav.goalsHint", "goal"),
+  item("/rates", "nav.rates", "nav.ratesHint", "fx"),
+  item("/returns", "nav.returns", "nav.returnsHint", "returns"),
+  item("/calendar", "nav.calendar", "nav.calendarHint", "cal"),
+  item("/checklist", "nav.checklist", "nav.checklistHint", "check"),
+  item("/expenses", "nav.expenses", "nav.expensesHint", "bill"),
+  item("/suppliers", "nav.suppliers", "nav.suppliersHint", "truck"),
+];
+
+export const SETTINGS_TOOL_GROUPS: { titleKey: string; items: NavItem[] }[] = [
   {
     titleKey: "group.ops",
-    items: [
-      { href: "/products", labelKey: "nav.products", hintKey: "nav.productsHint", icon: "box" },
-      { href: "/shopify", labelKey: "nav.shopify", hintKey: "nav.shopifyHint", icon: "shop" },
-      { href: "/ads", labelKey: "nav.ads", hintKey: "nav.adsHint", icon: "ads" },
-      { href: "/funnel", labelKey: "nav.funnel", hintKey: "nav.funnelHint", icon: "funnel" },
-      { href: "/returns", labelKey: "nav.returns", hintKey: "nav.returnsHint", icon: "returns" },
-      { href: "/creatives", labelKey: "nav.creatives", hintKey: "nav.creativesHint", icon: "spark" },
-      { href: "/suppliers", labelKey: "nav.suppliers", hintKey: "nav.suppliersHint", icon: "truck" },
-    ],
+    items: ADVANCED_NAV.filter((item) =>
+      ["/funnel", "/returns", "/calendar", "/checklist", "/suppliers"].includes(item.href),
+    ),
   },
   {
     titleKey: "group.money",
-    items: [
-      { href: "/treasury", labelKey: "nav.treasury", hintKey: "nav.treasuryHint", icon: "cash" },
-      { href: "/owner", labelKey: "nav.owner", hintKey: "nav.ownerHint", icon: "goal" },
-      { href: "/bills", labelKey: "nav.bills", hintKey: "nav.billsHint", icon: "bill" },
-      { href: "/payouts", labelKey: "nav.payouts", hintKey: "nav.payoutsHint", icon: "cash" },
-      { href: "/expenses", labelKey: "nav.expenses", hintKey: "nav.expensesHint", icon: "bill" },
-      { href: "/goals", labelKey: "nav.goals", hintKey: "nav.goalsHint", icon: "goal" },
-      { href: "/rates", labelKey: "nav.rates", hintKey: "nav.ratesHint", icon: "fx" },
-    ],
+    items: ADVANCED_NAV.filter((item) =>
+      ["/treasury", "/expenses", "/goals", "/rates"].includes(item.href),
+    ),
   },
   {
     titleKey: "group.tools",
-    items: [
-      { href: "/simulate", labelKey: "nav.simulate", hintKey: "nav.simulateHint", icon: "lab" },
-      { href: "/review", labelKey: "nav.review", hintKey: "nav.reviewHint", icon: "note" },
-      { href: "/journal", labelKey: "nav.journal", hintKey: "nav.journalHint", icon: "note" },
-      { href: "/search", labelKey: "nav.search", hintKey: "nav.searchHint", icon: "search" },
-      { href: "/settings", labelKey: "nav.settings", hintKey: "nav.settingsHint", icon: "gear" },
-    ],
+    items: ADVANCED_NAV.filter((item) => item.href === "/simulate"),
   },
 ];
 
-export const MOBILE_PRIMARY: NavItem[] = [
-  NAV_GROUPS[0].items[0],
-  NAV_GROUPS[0].items[1],
-  NAV_GROUPS[1].items[0],
-  NAV_GROUPS[2].items[0],
-];
+export const MOBILE_PRIMARY = PRIMARY_NAV;
 
 export function isActivePath(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";

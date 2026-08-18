@@ -1,6 +1,7 @@
 "use client";
 
 import { useDisplayCurrency } from "@/components/DisplayCurrency";
+import { usePrefs } from "@/components/PrefsProvider";
 import { KpiCard, PageHeader } from "@/components/ui";
 import { RecordsView } from "@/components/views/RecordsView";
 import { convertToCad } from "@/lib/currency";
@@ -31,6 +32,7 @@ export function TreasuryView({
   extrasReady: boolean;
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const unitCogsCad = unitCogsFromProducts(products);
   const summary = summarizePeriod(entries, unitCogsCad);
   const fx = snapshot ?? entries[0]?.exchange_rate_snapshot ?? null;
@@ -44,21 +46,21 @@ export function TreasuryView({
   return (
     <div>
       <PageHeader
-        kicker="الخزينة"
-        title="السيولة"
-        description="الربح المحاسبي من اليومية، ثم حركاتك النقدية اليدوية (تحويل Dropi، سحب، مصروف)."
+        kicker={t("nav.treasury")}
+        title={t("treasury.title")}
+        description={t("treasury.desc")}
       />
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <KpiCard
-          label="ربح تشغيلي (كل الفترة)"
+          label={t("treasury.ops")}
           value={show(summary.profitCad)}
           tone={summary.profitCad >= 0 ? "profit" : "loss"}
         />
-        <KpiCard label="حركات مسجّلة" value={show(movementsCad)} tone="gold" />
+        <KpiCard label={t("treasury.moves")} value={show(movementsCad)} tone="gold" />
         <KpiCard
-          label="صورة مبسّطة"
+          label={t("treasury.picture")}
           value={show(summary.profitCad + movementsCad)}
-          hint="ربح تشغيلي + حركاتك"
+          hint={t("treasury.hint")}
         />
       </div>
       <RecordsView kind="cash" records={records} extrasReady={extrasReady} hideHeader />

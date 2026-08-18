@@ -254,7 +254,7 @@ export function ProductCalculator({
       sale_price_amount: String(Math.ceil(priceMxn)),
       sale_price_currency: "MXN",
     }));
-    setMessage("تم تعبئة سعر البيع المقترح.");
+    setMessage(t("product.filledPrice"));
   }
 
   function applyRecommendedCpa(cpaUsd: number) {
@@ -263,13 +263,13 @@ export function ProductCalculator({
       ads_cost_per_order_amount: String(Math.round(cpaUsd * 100) / 100),
       ads_cost_per_order_currency: "USD",
     }));
-    setMessage("تم تعبئة أقصى CPA مقبول كتكلفة إعلان لكل طلب.");
+    setMessage(t("product.filledCpa"));
   }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (!snapshot) {
-      setError("انتظر تحميل أسعار الصرف قبل الحفظ.");
+      setError(t("common.waitRates"));
       return;
     }
 
@@ -301,21 +301,21 @@ export function ProductCalculator({
         setError(result.error);
         return;
       }
-      setMessage(result.message ?? "تم الحفظ.");
+      setMessage(t("common.saved"));
       resetForm();
       router.refresh();
     });
   }
 
   function onDelete(id: string) {
-    if (!window.confirm("هل تريد حذف هذا المنتج؟")) return;
+    if (!window.confirm(t("common.confirmDelete"))) return;
     startTransition(async () => {
       const result = await deleteProduct(id);
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      setMessage(result.message ?? "تم الحذف.");
+      setMessage(t("common.deleted"));
       if (form.id === id) resetForm();
       router.refresh();
     });
@@ -326,20 +326,20 @@ export function ProductCalculator({
       <form className="cb-card space-y-4" onSubmit={onSubmit}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">حاسبة التسعير</h2>
-            <p className="text-sm text-stone-500">
-              من تكلفة المنتج حتى أقصى إعلان مقبول وسعر البيع النهائي.
+            <h2 className="text-lg font-semibold">{t("product.calc")}</h2>
+            <p className="text-sm text-muted">
+              {t("product.calcHint")}
             </p>
           </div>
           {form.id ? (
-            <button className="text-sm text-teal-800 underline" type="button" onClick={resetForm}>
-              منتج جديد
+            <button className="text-sm text-forest-mid underline" type="button" onClick={resetForm}>
+              {t("product.new")}
             </button>
           ) : null}
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-stone-700">اسم المنتج</span>
+          <span className="text-sm font-medium text-foreground">{t("product.name")}</span>
           <input
             className="cb-input"
             value={form.product_name}
@@ -352,7 +352,7 @@ export function ProductCalculator({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm font-medium">نموذج البيع</span>
+            <span className="text-sm font-medium">{t("common.salesModel")}</span>
             <select
               className="cb-input"
               value={salesModel}
@@ -363,7 +363,7 @@ export function ProductCalculator({
             </select>
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium">التطبيق</span>
+            <span className="text-sm font-medium">{t("product.appOnly")}</span>
             <select
               className="cb-input"
               value={fulfillment}
@@ -387,7 +387,7 @@ export function ProductCalculator({
         ) : null}
         {fulfillment === "shopify" || salesModel === "prepaid" ? (
           <label className="block space-y-2">
-            <span className="text-sm font-medium">رابط Shopify / المنتج</span>
+            <span className="text-sm font-medium">{t("product.shopifyUrl")}</span>
             <input
               className="cb-input"
               value={shopifyUrl}
@@ -397,20 +397,20 @@ export function ProductCalculator({
           </label>
         ) : null}
         <div className="space-y-2">
-          <p className="text-sm font-medium">القرار</p>
+          <p className="text-sm font-medium">{t("product.decision")}</p>
           <div className="grid grid-cols-3 gap-2">
             {(["scale", "watch", "kill"] as ProductDecision[]).map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setDecision(value)}
-                className={`min-h-11 rounded-2xl text-sm font-semibold ${
+                className={`min-h-11 rounded-lg text-sm font-semibold ${
                   decision === value
                     ? value === "kill"
                       ? "bg-loss text-white"
                       : value === "scale"
                         ? "bg-profit text-white"
-                        : "bg-forest text-white"
+                        : "bg-forest-mid text-white"
                     : "border border-line bg-card"
                 }`}
               >
@@ -422,14 +422,14 @@ export function ProductCalculator({
             className="cb-input"
             value={decisionNote}
             onChange={(event) => setDecisionNote(event.target.value)}
-            placeholder={lang === "fr" ? "Pourquoi cette décision ?" : "لماذا هذا القرار؟"}
+            placeholder={t("product.why")}
           />
         </div>
 
         <MoneyInput
           id="supplier"
-          label="تكلفة المنتج من المورد"
-          hint="تُدخل عادة بالبيزو"
+          label={t("product.supplier")}
+          hint={t("product.supplierHint")}
           amount={form.supplier_cost_amount}
           currency={form.supplier_cost_currency}
           onAmountChange={(value) =>
@@ -443,7 +443,7 @@ export function ProductCalculator({
 
         <MoneyInput
           id="shipping"
-          label="تكلفة التوصيل"
+          label={t("product.shipping")}
           amount={form.shipping_cost_amount}
           currency={form.shipping_cost_currency}
           onAmountChange={(value) =>
@@ -456,7 +456,7 @@ export function ProductCalculator({
         />
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-stone-700">
+          <span className="text-sm font-medium text-foreground">
             {commissionLabel(fulfillment, lang)}
           </span>
           <input
@@ -476,8 +476,8 @@ export function ProductCalculator({
 
         <MoneyInput
           id="sale"
-          label="سعر البيع"
-          hint="أدخل سعراً تجريبياً لحساب أقصى إعلان مقبول"
+          label={t("product.sale")}
+          hint={t("product.saleHint")}
           amount={form.sale_price_amount}
           currency={form.sale_price_currency}
           onAmountChange={(value) =>
@@ -490,66 +490,64 @@ export function ProductCalculator({
         />
 
         {snapshot ? (
-          <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 space-y-4">
+          <section className="cb-card space-y-4">
             <div>
-              <h3 className="text-sm font-semibold text-amber-950">
-                تقدير الإعلان لكل طلب (CPA)
+              <h3 className="text-sm font-semibold">
+                {t("product.cpaTitle")}
               </h3>
-              <p className="mt-1 text-xs text-amber-900/80">
-                أقصى CPA مقبول = الهامش الخام قبل الإعلان × نسبة التسليم من
-                الطلبات الجديدة × (1 − هامش الأمان). الإعلان يُدفع على كل طلب،
-                والربح يأتي من الطلبات المسلّمة فقط.
+              <p className="mt-1 text-xs text-muted">
+                {t("product.cpaHint")}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <PercentField
-                label="معدل التأكيد %"
+                label={t("product.confirmPct")}
                 value={confirmationPct}
                 onChange={setConfirmationPct}
                 hint={
                   history.confirmationPct
-                    ? `من بياناتك: ${formatNumber(history.confirmationPct, 0)}%`
-                    : "افتراضي COD: 50%"
+                    ? t("product.fromData", { n: formatNumber(history.confirmationPct, 0) })
+                    : t("product.defaultCod")
                 }
               />
               <PercentField
-                label="معدل التسليم %"
+                label={t("product.deliverPct")}
                 value={deliveryPct}
                 onChange={setDeliveryPct}
                 hint={
                   history.deliveryPct
-                    ? `من بياناتك: ${formatNumber(history.deliveryPct, 0)}%`
-                    : "من المؤكد: 70%"
+                    ? t("product.fromData", { n: formatNumber(history.deliveryPct, 0) })
+                    : t("product.fromConfirmed")
                 }
               />
               <PercentField
-                label="هامش الأمان %"
+                label={t("product.safety")}
                 value={safetyPct}
                 onChange={setSafetyPct}
-                hint="احتفظ بربح بعد الإعلان"
+                hint={t("product.safetyHint")}
               />
               <PercentField
-                label="تحويل النقرة لطلب %"
+                label={t("product.cto")}
                 value={clickToOrderPct}
                 onChange={setClickToOrderPct}
-                hint="لحساب أقصى CPC"
+                hint={t("product.ctoHint")}
               />
             </div>
 
             {adsEstimate ? (
               <>
                 <div
-                  className={`rounded-xl p-3 ${
+                  className={`rounded-lg p-4 ${
                     adsEstimate.verdict === "go"
-                      ? "bg-teal-700 text-white"
+                      ? "bg-forest-mid text-white"
                       : adsEstimate.verdict === "caution"
-                        ? "bg-amber-700 text-white"
-                        : "bg-red-700 text-white"
+                        ? "bg-gold text-forest"
+                        : "bg-loss text-white"
                   }`}
                 >
-                  <p className="text-xs opacity-90">أقصى CPA مقبول لكل طلب جديد</p>
-                  <p className="mt-1 text-2xl font-bold">
+                  <p className="text-xs opacity-90">{t("product.maxCpaNew")}</p>
+                  <p className="cb-num mt-1 text-2xl font-semibold">
                     {formatMoney(adsEstimate.maxCpaUsd, "USD")}
                   </p>
                   <p className="mt-1 text-xs opacity-90">
@@ -558,25 +556,25 @@ export function ProductCalculator({
                   </p>
                   <p className="mt-2 text-sm font-semibold">
                     {adsEstimate.verdict === "go"
-                      ? "المنتج قابل للإعلان — CPA مريح"
+                      ? t("product.adsOk")
                       : adsEstimate.verdict === "caution"
-                        ? "حساس: أعلن بحذر أو ارفع سعر البيع"
-                        : "غير مربح للإعلان بهذا السعر"}
+                        ? t("product.adsCareful")
+                        : t("product.adsBad")}
                   </p>
                 </div>
 
                 <dl className="grid grid-cols-2 gap-2 text-sm">
                   <Stat
-                    label="الهامش الخام قبل الإعلان"
+                    label={t("product.grossBefore")}
                     value={formatMoney(adsEstimate.grossBeforeAdsMxn, "MXN")}
-                    sub={`${formatNumber(adsEstimate.grossBeforeAdsPct)}% من البيع`}
+                    sub={t("product.ofSale", { n: formatNumber(adsEstimate.grossBeforeAdsPct) })}
                   />
                   <Stat
-                    label="التسليم من الطلبات الجديدة"
+                    label={t("product.delivOfNew")}
                     value={formatPercent(adsEstimate.deliveredOfNew)}
                   />
                   <Stat
-                    label="CPA نقطة التعادل"
+                    label={t("product.beCpa")}
                     value={formatMoney(
                       convertAmount(
                         adsEstimate.breakEvenCpaMxn,
@@ -586,24 +584,25 @@ export function ProductCalculator({
                       ),
                       "USD",
                     )}
-                    sub="بدون هامش أمان"
+                    sub={t("product.noSafety")}
                   />
                   <Stat
-                    label="أقصى CPC"
+                    label={t("product.maxCpc")}
                     value={
                       adsEstimate.maxCpcUsd
                         ? formatMoney(adsEstimate.maxCpcUsd, "USD")
                         : "—"
                     }
-                    sub="تكلفة النقرة القصوى"
+                    sub={t("product.maxCpcSub")}
                   />
                 </dl>
 
-                <p className="text-xs text-amber-950">
-                  إذا أنفقت {formatMoney(adsEstimate.recommendedCpaUsd, "USD")}{" "}
-                  لكل طلب، يبقى صافي تقريبي{" "}
-                  {formatMoney(adsEstimate.netIfRecommendedMxn, "MXN")} (
-                  {formatNumber(adsEstimate.netIfRecommendedPct)}%).
+                <p className="text-xs text-muted">
+                  {t("product.ifSpend", {
+                    cpa: formatMoney(adsEstimate.recommendedCpaUsd, "USD"),
+                    net: formatMoney(adsEstimate.netIfRecommendedMxn, "MXN"),
+                    pct: formatNumber(adsEstimate.netIfRecommendedPct),
+                  })}
                 </p>
 
                 <button
@@ -612,24 +611,23 @@ export function ProductCalculator({
                   disabled={adsEstimate.maxCpaUsd <= 0}
                   onClick={() => applyRecommendedCpa(adsEstimate.recommendedCpaUsd)}
                 >
-                  استخدم هذا الـ CPA في تكلفة الإعلان
+                  {t("product.useCpa")}
                 </button>
 
                 {priceCoveringCpa ? (
-                  <div className="rounded-xl bg-white p-3 ring-1 ring-amber-200">
-                    <p className="text-xs text-stone-500">
-                      سعر البيع النهائي المطلوب لهامش {targetMarginPct}% مع هذا
-                      الـ CPA
+                  <div className="rounded-lg border border-line bg-background p-3">
+                    <p className="text-xs text-muted">
+                      {t("product.finalPriceFor", { n: targetMarginPct })}
                     </p>
-                    <p className="mt-1 text-xl font-bold text-stone-900">
+                    <p className="mt-1 text-xl font-bold text-foreground">
                       {formatMoney(Math.ceil(priceCoveringCpa), "MXN")}
                     </p>
                     <button
-                      className="mt-2 text-sm font-semibold text-teal-800 underline"
+                      className="mt-2 text-sm font-semibold text-forest-mid underline"
                       type="button"
                       onClick={() => applyRecommendedPrice(priceCoveringCpa)}
                     >
-                      استخدم سعر البيع النهائي
+                      {t("product.useFinalPrice")}
                     </button>
                   </div>
                 ) : null}
@@ -650,8 +648,8 @@ export function ProductCalculator({
                 />
               </>
             ) : (
-              <p className="text-sm text-amber-900">
-                أدخل سعر البيع أولاً لحساب أقصى إعلان مقبول.
+              <p className="text-sm text-muted">
+                {t("product.enterSaleFirst")}
               </p>
             )}
           </section>
@@ -659,8 +657,8 @@ export function ProductCalculator({
 
         <MoneyInput
           id="ads-order"
-          label="تكلفة الإعلان المقدّرة لكل طلب"
-          hint="يمكن تعبئتها تلقائياً من أقصى CPA أعلاه"
+          label={t("product.estAds")}
+          hint={t("product.estAdsHint")}
           amount={form.ads_cost_per_order_amount}
           currency={form.ads_cost_per_order_currency}
           onAmountChange={(value) =>
@@ -679,30 +677,29 @@ export function ProductCalculator({
         />
 
         {pricing && snapshot ? (
-          <section className="rounded-2xl border border-teal-200 bg-teal-50/60 p-4 space-y-3">
+          <section className="cb-card space-y-3">
             <div>
-              <h3 className="text-sm font-semibold text-teal-950">
-                لا تعرف بكم تبيع؟
+              <h3 className="text-sm font-semibold text-foreground">
+                {t("product.dontKnow")}
               </h3>
-              <p className="mt-1 text-xs text-teal-900/80">
-                يحسب السعر ليشمل تكلفة المنتج والتوصيل والإعلان والعمولة مع
-                الهامش المطلوب.
+              <p className="mt-1 text-xs text-forest-mid/80">
+                {t("product.priceHint")}
               </p>
             </div>
 
             <label className="block space-y-2">
-              <span className="text-sm font-medium text-stone-700">
-                الهامش المستهدف (%)
+              <span className="text-sm font-medium text-foreground">
+                {t("product.targetMargin")}
               </span>
               <div className="flex flex-wrap gap-2">
                 {[20, 25, 30].map((margin) => (
                   <button
                     key={margin}
                     type="button"
-                    className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
+                    className={`rounded-md px-3 py-1.5 text-sm font-semibold ${
                       Number(targetMarginPct) === margin
-                        ? "bg-teal-700 text-white"
-                        : "bg-white text-teal-800 ring-1 ring-teal-200"
+                        ? "bg-forest-mid text-white"
+                        : "bg-background text-foreground ring-1 ring-line"
                     }`}
                     onClick={() => setTargetMarginPct(String(margin))}
                   >
@@ -721,15 +718,15 @@ export function ProductCalculator({
             </label>
 
             {pricing.recommendedSalePriceMxn ? (
-              <div className="rounded-xl bg-white p-3 ring-1 ring-teal-100">
-                <p className="text-xs text-stone-500">سعر البيع المقترح</p>
-                <p className="mt-1 text-2xl font-bold text-teal-900">
+              <div className="rounded-lg border border-line bg-background p-3">
+                <p className="text-xs text-muted">{t("product.suggestedPrice")}</p>
+                <p className="mt-1 text-2xl font-bold text-forest-mid">
                   {formatMoney(
                     Math.ceil(pricing.recommendedSalePriceMxn),
                     "MXN",
                   )}
                 </p>
-                <p className="mt-1 text-xs text-teal-800">
+                <p className="mt-1 text-xs text-forest-mid">
                   = {formatMoney(
                     convertAmount(
                       Math.ceil(pricing.recommendedSalePriceMxn),
@@ -757,13 +754,12 @@ export function ProductCalculator({
                     applyRecommendedPrice(pricing.recommendedSalePriceMxn!)
                   }
                 >
-                  استخدم هذا السعر
+                  {t("product.usePrice")}
                 </button>
               </div>
             ) : (
-              <p className="text-sm text-amber-900">
-                أدخل التكاليف أولاً، أو الهامش المطلوب كبير جداً مقارنة بعمولة
-                Dropi.
+              <p className="text-sm text-muted">
+                {t("product.enterCosts")}
               </p>
             )}
 
@@ -773,10 +769,10 @@ export function ProductCalculator({
                 return (
                   <div
                     key={margin}
-                    className="rounded-lg bg-white px-2 py-2 ring-1 ring-teal-100"
+                    className="rounded-lg border border-line bg-background px-2 py-2"
                   >
-                    <dt className="text-stone-500">هامش {margin}%</dt>
-                    <dd className="mt-1 font-semibold text-teal-900">
+                    <dt className="text-muted">{t("product.marginPct", { n: margin })}</dt>
+                    <dd className="mt-1 font-semibold text-forest-mid">
                       {price
                         ? formatMoney(Math.ceil(price), "MXN")
                         : "—"}
@@ -790,20 +786,20 @@ export function ProductCalculator({
 
         {pricing && Number(form.sale_price_amount) > 0 ? (
           <div
-            className={`rounded-2xl border p-4 ${
+            className={`rounded-xl border p-4 ${
               pricing.isHealthy
-                ? "border-teal-200 bg-teal-50 text-teal-950"
-                : "border-red-200 bg-red-50 text-red-950"
+                ? "border-line bg-card text-foreground"
+                : "border-loss/40 bg-card text-loss"
             }`}
           >
             <p className="text-sm font-semibold">
               {pricing.isHealthy
-                ? "الهامش صحي (20% أو أكثر)"
-                : "تحذير: الهامش أقل من 20%"}
+                ? t("product.healthyMsg")
+                : t("product.warnMsg")}
             </p>
             <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-stone-600">الهامش الصافي بعد الإعلان</dt>
+                <dt className="text-muted">{t("product.netAfterAds")}</dt>
                 <dd className="font-semibold">
                   {formatMoney(pricing.netMarginMxn, "MXN")}
                   <span className="mt-0.5 block text-xs font-normal">
@@ -812,17 +808,17 @@ export function ProductCalculator({
                 </dd>
               </div>
               <div>
-                <dt className="text-stone-600">نسبة الهامش</dt>
+                <dt className="text-muted">{t("product.marginRatio")}</dt>
                 <dd className="font-semibold">
                   {formatNumber(pricing.marginPercent)}%
                 </dd>
               </div>
               <div className="sm:col-span-2">
-                <dt className="text-stone-600">الحد الأدنى لسعر البيع للربحية</dt>
+                <dt className="text-muted">{t("product.minSale")}</dt>
                 <dd className="font-semibold">
                   {Number.isFinite(pricing.minSalePriceMxn)
                     ? formatMoney(pricing.minSalePriceMxn, "MXN")
-                    : "غير ممكن مع عمولة 100%"}
+                    : t("product.impossible")}
                 </dd>
               </div>
             </dl>
@@ -830,25 +826,25 @@ export function ProductCalculator({
         ) : null}
 
         <button className="cb-btn w-full" disabled={pending} type="submit">
-          {pending ? "جاري الحفظ..." : form.id ? "تحديث المنتج" : "حفظ التقييم"}
+          {pending ? t("common.saving") : form.id ? t("product.updateBtn") : t("product.saveBtn")}
         </button>
-        {ratesError ? <p className="text-sm text-red-700">{ratesError}</p> : null}
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        {message ? <p className="text-sm text-teal-800">{message}</p> : null}
+        {ratesError ? <p className="text-sm text-loss">{ratesError}</p> : null}
+        {error ? <p className="text-sm text-loss">{error}</p> : null}
+        {message ? <p className="text-sm text-forest-mid">{message}</p> : null}
       </form>
 
       <section className="cb-card space-y-3">
-        <h2 className="text-base font-semibold">المنتجات المحفوظة</h2>
+        <h2 className="text-base font-semibold">{t("product.savedList")}</h2>
         <input
           className="cb-input"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="بحث باسم المنتج"
+          placeholder={t("product.searchPh")}
         />
         <ul className="space-y-3">
           {filtered.length === 0 ? (
-            <li className="py-6 text-center text-sm text-stone-500">
-              لا توجد منتجات مطابقة.
+            <li className="py-6 text-center text-sm text-muted">
+              {t("product.noMatch")}
             </li>
           ) : (
             filtered.map((product) => {
@@ -903,15 +899,15 @@ export function ProductCalculator({
               return (
                 <li
                   key={product.id}
-                  className={`rounded-2xl border p-4 ${
-                    result.isHealthy ? "border-teal-100 bg-teal-50/50" : "border-red-100 bg-red-50/50"
+                  className={`rounded-xl border p-4 ${
+                    result.isHealthy ? "border-line bg-card" : "border-loss/30 bg-card"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-semibold">{product.product_name}</p>
-                      <p className="text-sm text-stone-600">
-                        بيع: {formatMoney(product.sale_price_amount, product.sale_price_currency)}
+                      <p className="text-sm text-muted">
+                        {t("product.saleShort")}: {formatMoney(product.sale_price_amount, product.sale_price_currency)}
                       </p>
                     </div>
                     <p className="text-sm font-semibold">
@@ -919,29 +915,29 @@ export function ProductCalculator({
                     </p>
                   </div>
                   <p className="mt-2 text-sm">
-                    هامش: {formatMoney(result.netMarginMxn, "MXN")} /{" "}
+                    {t("product.margin")}: {formatMoney(result.netMarginMxn, "MXN")} /{" "}
                     {formatMoney(marginDisplay, displayCurrency)}
                   </p>
-                  <p className="text-xs text-stone-500">
-                    أقصى CPA:{" "}
+                  <p className="text-xs text-muted">
+                    {t("product.maxCpaShort")}:{" "}
                     {estimate
                       ? formatMoney(estimate.maxCpaUsd, "USD")
                       : "—"}
                   </p>
                   <div className="mt-3 flex gap-3">
                     <button
-                      className="text-sm text-teal-800 underline"
+                      className="text-sm text-forest-mid underline"
                       type="button"
                       onClick={() => loadProduct(product)}
                     >
-                      تعديل
+                      {t("common.edit")}
                     </button>
                     <button
-                      className="text-sm text-red-700 underline"
+                      className="text-loss underline"
                       type="button"
                       onClick={() => onDelete(product.id)}
                     >
-                      حذف
+                      {t("delete")}
                     </button>
                   </div>
                 </li>
@@ -967,7 +963,7 @@ function PercentField({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-xs font-medium text-stone-700">{label}</span>
+      <span className="text-xs font-medium text-foreground">{label}</span>
       <input
         className="cb-input"
         inputMode="decimal"
@@ -975,7 +971,7 @@ function PercentField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-      {hint ? <span className="block text-[11px] text-stone-500">{hint}</span> : null}
+      {hint ? <span className="block text-[11px] text-muted">{hint}</span> : null}
     </label>
   );
 }
@@ -990,10 +986,10 @@ function Stat({
   sub?: string;
 }) {
   return (
-    <div className="rounded-xl bg-white p-3 ring-1 ring-amber-100">
-      <dt className="text-xs text-stone-500">{label}</dt>
-      <dd className="mt-1 font-semibold text-stone-900">{value}</dd>
-      {sub ? <p className="mt-0.5 text-[11px] text-stone-500">{sub}</p> : null}
+    <div className="rounded-lg border border-line bg-background p-3">
+      <dt className="text-xs text-muted">{label}</dt>
+      <dd className="mt-1 font-semibold text-foreground">{value}</dd>
+      {sub ? <p className="mt-0.5 text-[11px] text-muted">{sub}</p> : null}
     </div>
   );
 }
@@ -1011,18 +1007,19 @@ function CostBreakdown({
   commission: number;
   ads: number;
 }) {
+  const { t } = usePrefs();
   const rows = [
-    { label: "المورد", value: supplier, color: "bg-stone-400" },
-    { label: "التوصيل", value: shipping, color: "bg-stone-500" },
-    { label: "Dropi", value: commission, color: "bg-amber-500" },
-    { label: "إعلان", value: ads, color: "bg-orange-500" },
+    { label: t("product.supplierShort"), value: supplier, color: "bg-muted" },
+    { label: t("product.shipShort"), value: shipping, color: "bg-forest-mid" },
+    { label: "Dropi", value: commission, color: "bg-gold" },
+    { label: t("product.adShort"), value: ads, color: "bg-orange-500" },
   ];
   const profit = sale - supplier - shipping - commission - ads;
 
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-stone-700">توزيع سعر البيع</p>
-      <div className="flex h-3 overflow-hidden rounded-full bg-stone-200">
+      <p className="text-xs font-medium text-foreground">{t("product.breakdown")}</p>
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-line">
         {rows.map((row) => (
           <div
             key={row.label}
@@ -1031,18 +1028,18 @@ function CostBreakdown({
           />
         ))}
         <div
-          className={profit >= 0 ? "bg-teal-600" : "bg-red-600"}
+          className={profit >= 0 ? "bg-profit" : "bg-loss"}
           style={{ width: `${Math.max(costSharePct(Math.abs(profit), sale), 0)}%` }}
         />
       </div>
-      <ul className="grid grid-cols-2 gap-1 text-[11px] text-stone-600">
+      <ul className="grid grid-cols-2 gap-1 text-[11px] text-muted">
         {rows.map((row) => (
           <li key={row.label}>
             {row.label}: {formatNumber(costSharePct(row.value, sale), 0)}%
           </li>
         ))}
         <li>
-          ربح: {formatNumber(costSharePct(profit, sale), 0)}%
+          {t("product.profitShare")}: {formatNumber(costSharePct(profit, sale), 0)}%
         </li>
       </ul>
     </div>

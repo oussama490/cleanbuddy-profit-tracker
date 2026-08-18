@@ -1,6 +1,7 @@
 "use client";
 
 import { useDisplayCurrency } from "@/components/DisplayCurrency";
+import { usePrefs } from "@/components/PrefsProvider";
 import { KpiCard, PageHeader } from "@/components/ui";
 import { useRates } from "@/components/RatesProvider";
 import {
@@ -29,6 +30,7 @@ export function SimulateView({
   products: ProductCalculation[];
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const { snapshot } = useRates();
   const history = historicalFunnel(entries);
   const unitCogsCad = unitCogsFromProducts(products);
@@ -82,28 +84,28 @@ export function SimulateView({
   return (
     <div>
       <PageHeader
-        kicker="المحاكاة"
-        title="ماذا لو رفعت الميزانية؟"
-        description="السيناريو يستخدم قمعك الحقيقي وربح المسلّم التاريخي. الأرقام تقديرية لك."
+        kicker={t("nav.simulate")}
+        title={t("sim.title")}
+        description={t("sim.desc")}
       />
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <form className="cb-card space-y-4" onSubmit={(event) => event.preventDefault()}>
-          <Field label={`ميزانية إعلان يومية (${currency})`} value={dailyAds} onChange={setDailyAds} />
-          <Field label="عدد الأيام" value={days} onChange={setDays} />
-          <Field label={`CPC تقريبي (${currency})`} value={cpc} onChange={setCpc} />
-          <Field label="تأكيد %" value={confirm} onChange={setConfirm} />
-          <Field label="تسليم %" value={delivery} onChange={setDelivery} />
-          <Field label="نقرات → طلب %" value={cto} onChange={setCto} />
+          <Field label={`${t("sim.budget")} (${currency})`} value={dailyAds} onChange={setDailyAds} />
+          <Field label={t("sim.days")} value={days} onChange={setDays} />
+          <Field label={`${t("sim.cpc")} (${currency})`} value={cpc} onChange={setCpc} />
+          <Field label={t("sim.confirm")} value={confirm} onChange={setConfirm} />
+          <Field label={t("sim.deliver")} value={delivery} onChange={setDelivery} />
+          <Field label={t("sim.cto")} value={cto} onChange={setCto} />
         </form>
         <div className="space-y-3">
           <KpiCard
-            label="ربح متوقع"
+            label={t("sim.profit")}
             value={projection ? show(projection.profitCad) : "—"}
             tone={projection && projection.profitCad >= 0 ? "profit" : "loss"}
           />
-          <KpiCard label="إنفاق الفترة" value={projection ? show(projection.adsCad) : "—"} tone="gold" />
+          <KpiCard label={t("sim.spend")} value={projection ? show(projection.adsCad) : "—"} tone="gold" />
           <KpiCard
-            label="طلبات / مسلّم"
+            label={t("sim.orders")}
             value={
               projection
                 ? `${formatNumber(projection.newOrders, 0)} / ${formatNumber(projection.delivered, 0)}`
@@ -111,9 +113,9 @@ export function SimulateView({
             }
           />
           <KpiCard
-            label="نقطة التعادل"
-            value={be ? `${formatNumber(be, 1)} تسليم` : "—"}
-            hint="لتغطية إنفاق الفترة"
+            label={t("sim.be")}
+            value={be ? `${formatNumber(be, 1)} ${t("sim.deliveries")}` : "—"}
+            hint={t("sim.beHint")}
           />
         </div>
       </div>

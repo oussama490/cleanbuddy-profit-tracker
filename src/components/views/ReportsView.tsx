@@ -1,11 +1,11 @@
 "use client";
 
 import { useDisplayCurrency } from "@/components/DisplayCurrency";
+import { usePrefs } from "@/components/PrefsProvider";
 import { EmptyState, KpiCard, PageHeader } from "@/components/ui";
 import {
   filterEntries,
   money,
-  periodLabel,
   periodStart,
   summarizePeriod,
   unitCogsFromProducts,
@@ -34,6 +34,7 @@ export function ReportsView({
   snapshot: ExchangeRateSnapshot | null;
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const [period, setPeriod] = useState<PeriodKey>("month");
   const unitCogsCad = unitCogsFromProducts(products);
   const rows = useMemo(
@@ -89,49 +90,56 @@ export function ReportsView({
   return (
     <div>
       <PageHeader
-        kicker="التقارير"
-        title="تقرير الفترة"
-        description="كل الأرقام في جدول واحد، مع تصدير لملفك الشخصي."
+        kicker={t("nav.reports")}
+        title={t("reports.title")}
+        description={t("reports.desc")}
         actions={
           <button className="cb-btn-ghost" type="button" onClick={exportCsv} disabled={rows.length === 0}>
-            تصدير CSV
+            {t("reports.export")}
           </button>
         }
       />
-      <div className="mb-5 flex flex-wrap gap-2">
-        {PERIODS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setPeriod(key)}
-            className={`min-h-10 rounded-full px-4 text-sm font-semibold ${
-              period === key ? "bg-forest text-white" : "border border-line bg-white text-muted"
-            }`}
-          >
-            {periodLabel(key)}
-          </button>
-        ))}
+      <div className="mb-5 overflow-x-auto">
+        <div className="cb-seg">
+          {PERIODS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setPeriod(key)}
+              className={`cb-seg-item whitespace-nowrap px-3 text-[12px] ${
+                period === key ? "cb-seg-item-on" : ""
+              }`}
+            >
+              {t(`period.${key}`)}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="الربح" value={show(summary.profitCad)} tone={summary.profitCad >= 0 ? "profit" : "loss"} />
-        <KpiCard label="الإيرادات" value={show(summary.revenueCad)} />
-        <KpiCard label="الإعلانات" value={show(summary.adsCad)} tone="gold" />
-        <KpiCard label="أيام مسجّلة" value={String(summary.days)} />
+        <KpiCard label={t("dash.profit")} value={show(summary.profitCad)} tone={summary.profitCad >= 0 ? "profit" : "loss"} />
+        <KpiCard label={t("dash.revenue")} value={show(summary.revenueCad)} />
+        <KpiCard label={t("nav.ads")} value={show(summary.adsCad)} tone="gold" />
+        <KpiCard label={t("reports.days")} value={String(summary.days)} />
       </div>
       <section className="cb-card overflow-hidden p-0">
         {rows.length === 0 ? (
           <div className="p-4">
-            <EmptyState title="لا بيانات في هذه الفترة" body="أضف إدخالات يومية لبناء التقرير." />
+            <EmptyState title={t("reports.empty")} body={t("reports.emptyBody")} />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-right text-sm">
-              <thead className="bg-[#f6f1e8] text-muted">
+            <table className="cb-table">
+              <thead>
                 <tr>
-                  {["التاريخ", "طلبات", "تأكيد", "تسليم", "إيراد", "ربح"].map((label) => (
-                    <th key={label} className="px-4 py-3 font-medium">
-                      {label}
-                    </th>
+                  {[
+                    t("common.date"),
+                    t("dash.orders"),
+                    t("reports.confirm"),
+                    t("reports.deliver"),
+                    t("dash.rev"),
+                    t("dash.profitShort"),
+                  ].map((label) => (
+                    <th key={label}>{label}</th>
                   ))}
                 </tr>
               </thead>
@@ -141,15 +149,15 @@ export function ReportsView({
                   .map((entry) => {
                     const snap = entry.exchange_rate_snapshot;
                     return (
-                      <tr key={entry.id} className="border-t border-line/70">
-                        <td className="px-4 py-3">{formatDisplayDate(entry.entry_date)}</td>
-                        <td className="px-4 py-3">{entry.new_orders}</td>
-                        <td className="px-4 py-3">{formatPercent(confirmationRate(entry))}</td>
-                        <td className="px-4 py-3">{formatPercent(deliveryRate(entry))}</td>
-                        <td className="px-4 py-3">
+                      <tr key={entry.id}>
+                        <td className="cb-num">{formatDisplayDate(entry.entry_date)}</td>
+                        <td className="cb-num">{entry.new_orders}</td>
+                        <td className="cb-num">{formatPercent(confirmationRate(entry))}</td>
+                        <td className="cb-num">{formatPercent(deliveryRate(entry))}</td>
+                        <td className="cb-num">
                           {formatMoney(money(dailyRevenueCad(entry), currency, snap), currency)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="cb-num">
                           {formatMoney(
                             money(dailyNetProfitCad(entry, unitCogsCad), currency, snap),
                             currency,

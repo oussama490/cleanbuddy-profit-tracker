@@ -1,14 +1,19 @@
 "use client";
 
 import { CurrencyToggle, useDisplayCurrency } from "@/components/DisplayCurrency";
-import { usePrefs } from "@/components/PrefsProvider";
-import { PageHeader } from "@/components/ui";
+import { NavIcon } from "@/components/icons";
+import { LangToggle, ThemeToggle, usePrefs } from "@/components/PrefsProvider";
+import { PageHeader, Section, SettingRow, StatusBadge } from "@/components/ui";
 import {
   DEFAULT_SHOP,
   FULFILLMENT_APPS,
   type FulfillmentApp,
+  type SalesModel,
 } from "@/lib/commerce";
+import { SETTINGS_TOOL_GROUPS } from "@/lib/nav";
 import type { DailyEntry, ProductCalculation, WorkspaceRecord } from "@/lib/types";
+import Link from "next/link";
+import { useState, type FormEvent } from "react";
 
 export function SettingsView({
   supabaseReady,
@@ -32,7 +37,10 @@ export function SettingsView({
   records: WorkspaceRecord[];
 }) {
   const { currency } = useDisplayCurrency();
-  const { shop, setShop, lang, setLang, theme, setTheme, t } = usePrefs();
+  const { shop, setShop, t } = usePrefs();
+  const [salesModel, setSalesModel] = useState<SalesModel>(shop.salesModel);
+  const [fulfillment, setFulfillment] = useState<FulfillmentApp>(shop.fulfillment);
+  const [saved, setSaved] = useState(false);
 
   function exportAll() {
     const blob = new Blob(
@@ -47,106 +55,192 @@ export function SettingsView({
     URL.revokeObjectURL(url);
   }
 
+  function onSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setShop({
+      salesModel,
+      fulfillment,
+      customApp: String(data.get("custom") ?? ""),
+      shopifyStore: String(data.get("store") ?? shop.shopifyStore),
+      shopifyUrl: String(data.get("url") ?? shop.shopifyUrl),
+      payoutDelayDays: Number(data.get("delay")) || DEFAULT_SHOP.payoutDelayDays,
+      ownerPayPct: Number(data.get("owner")) || DEFAULT_SHOP.ownerPayPct,
+    });
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2200);
+  }
+
   return (
     <div>
       <PageHeader
         kicker={t("nav.settings")}
-        title={lang === "fr" ? "Réglages" : "الإعدادات"}
-        description={
-          lang === "fr"
-            ? "Modèle COD ou prepaid, app (Dropi, CJ, Shopify…), langue et nuit."
-            : "COD أو مدفوع مسبقاً، التطبيق، اللغة، والوضع الليلي."
-        }
+        title={t("nav.settings")}
+        description={t("settings.desc")}
       />
 
-      <form
-        className="cb-card mb-4 space-y-4"
-        onSubmit={(event) => {
-          event.preventDefault();
-          const data = new FormData(event.currentTarget);
-          setShop({
-            salesModel: data.get("model") === "prepaid" ? "prepaid" : "cod",
-            fulfillment: (String(data.get("app")) as FulfillmentApp) || "dropi",
-            customApp: String(data.get("custom") ?? ""),
-            shopifyStore: String(data.get("store") ?? shop.shopifyStore),
-            shopifyUrl: String(data.get("url") ?? shop.shopifyUrl),
-            payoutDelayDays: Number(data.get("delay")) || DEFAULT_SHOP.payoutDelayDays,
-            ownerPayPct: Number(data.get("owner")) || DEFAULT_SHOP.ownerPayPct,
-          });
-        }}
-      >
-        <p className="font-semibold">{lang === "fr" ? "Modèle de vente" : "نموذج البيع"}</p>
-        <select className="cb-input" name="model" defaultValue={shop.salesModel}>
-          <option value="cod">{t("model.cod")}</option>
-          <option value="prepaid">{t("model.prepaid")}</option>
-        </select>
-        <select className="cb-input" name="app" defaultValue={shop.fulfillment}>
-          {FULFILLMENT_APPS.map((app) => (
-            <option key={app} value={app}>
-              {t(`app.${app}`)}
-            </option>
-          ))}
-        </select>
-        <input
-          className="cb-input"
-          name="custom"
-          defaultValue={shop.customApp}
-          placeholder={lang === "fr" ? "Nom de l’autre app" : "اسم التطبيق الآخر"}
-        />
-        <input className="cb-input" name="store" defaultValue={shop.shopifyStore} placeholder="Shopify store name" />
-        <input className="cb-input" name="url" defaultValue={shop.shopifyUrl} placeholder="https://....myshopify.com" />
-        <label className="block space-y-2">
-          <span className="text-sm">{lang === "fr" ? "Délai paiement COD (jours)" : "تأخير تحويل COD (أيام)"}</span>
-          <input className="cb-input" name="delay" defaultValue={String(shop.payoutDelayDays)} />
-        </label>
-        <label className="block space-y-2">
-          <span className="text-sm">{lang === "fr" ? "% que tu te verses" : "٪ تسحبه لنفسك"}</span>
-          <input className="cb-input" name="owner" defaultValue={String(shop.ownerPayPct)} />
-        </label>
-        <button className="cb-btn w-full" type="submit">
-          {t("save")}
-        </button>
+      <form onSubmit={onSave}>
+        <Section
+          title={t("settings.shop")}
+          hint={t("settings.shopHint")}
+          footer={
+            <div className="flex items-center justify-between gap-3">
+              <p className={`text-sm ${saved ? "text-forest-mid" : "text-transparent"}`}>
+                {t("common.saved")}
+              </p>
+              <button className="cb-btn min-h-10 px-5" type="submit">
+                {t("save")}
+              </button>
+            </div>
+          }
+        >
+          <p className="cb-label mb-2">{t("settings.model")}</p>
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            {(["cod", "prepaid"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setSalesModel(value)}
+                className={`cb-choice ${salesModel === value ? "cb-choice-on" : "cb-choice-off"}`}
+              >
+                <span className="text-sm font-semibold">
+                  {t(value === "cod" ? "settings.codShort" : "settings.prepaidShort")}
+                </span>
+                <span className="mt-0.5 text-xs text-muted">
+                  {t(value === "cod" ? "settings.codHint" : "settings.prepaidHint")}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <label className="mb-4 block space-y-1.5">
+            <span className="cb-label">{t("settings.app")}</span>
+            <select
+              className="cb-input"
+              name="app"
+              value={fulfillment}
+              onChange={(event) => setFulfillment(event.target.value as FulfillmentApp)}
+            >
+              {FULFILLMENT_APPS.map((app) => (
+                <option key={app} value={app}>
+                  {t(`app.${app}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {fulfillment === "custom" ? (
+            <label className="mb-4 block space-y-1.5">
+              <span className="cb-label">{t("settings.customApp")}</span>
+              <input
+                className="cb-input"
+                name="custom"
+                defaultValue={shop.customApp}
+                placeholder="CJ, Zendrop, AutoDS…"
+              />
+            </label>
+          ) : (
+            <input type="hidden" name="custom" value={shop.customApp} />
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block space-y-1.5">
+              <span className="cb-label">{t("settings.store")}</span>
+              <input
+                className="cb-input"
+                name="store"
+                defaultValue={shop.shopifyStore}
+                placeholder="cleanbuddy"
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="cb-label">{t("settings.url")}</span>
+              <input
+                className="cb-input"
+                name="url"
+                defaultValue={shop.shopifyUrl}
+                placeholder="https://….myshopify.com"
+              />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="cb-label">{t("settings.payout")}</span>
+              <input className="cb-input" name="delay" defaultValue={String(shop.payoutDelayDays)} />
+            </label>
+            <label className="block space-y-1.5">
+              <span className="cb-label">{t("settings.owner")}</span>
+              <input className="cb-input" name="owner" defaultValue={String(shop.ownerPayPct)} />
+            </label>
+          </div>
+        </Section>
       </form>
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2">
-        <article className="cb-card space-y-3">
-          <p className="font-semibold">{lang === "fr" ? "Affichage" : "العرض"}</p>
-          <div className="flex flex-wrap gap-2">
-            <button className="cb-chip" type="button" onClick={() => setLang(lang === "ar" ? "fr" : "ar")}>
-              {lang === "ar" ? "Français" : "العربية"}
-            </button>
-            <button className="cb-chip" type="button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-              {t(theme === "dark" ? "theme.light" : "theme.dark")}
-            </button>
-            <CurrencyToggle />
-          </div>
-        </article>
-        <article className="cb-card space-y-3">
-          <p className="font-semibold">{lang === "fr" ? "Sauvegarde" : "نسخة احتياطية"}</p>
-          <button className="cb-btn-ghost w-full" type="button" onClick={exportAll}>
-            {lang === "fr" ? "Télécharger JSON" : "تنزيل JSON"}
+      <Section title={t("settings.display")} hint={t("settings.displayHint")}>
+        <SettingRow label={t("settings.lang")}>
+          <LangToggle />
+        </SettingRow>
+        <SettingRow label={t("settings.theme")}>
+          <ThemeToggle />
+        </SettingRow>
+        <SettingRow label={t("common.currency")}>
+          <CurrencyToggle />
+        </SettingRow>
+      </Section>
+
+      <Section title={t("settings.backup")} hint={t("settings.backupHint")}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted">
+            {entryCount} {t("settings.days")} · {productCount} {t("settings.products")}
+          </p>
+          <button className="cb-btn-ghost min-h-10" type="button" onClick={exportAll}>
+            {t("settings.export")}
           </button>
-        </article>
-      </div>
+        </div>
+      </Section>
 
-      <article className="cb-card space-y-2 text-sm">
-        <Row label={lang === "fr" ? "Devise" : "العملة"} value={currency} />
-        <Row label="Mot de passe" value={passwordEnabled ? "on" : "off"} />
-        <Row label="Supabase" value={supabaseReady ? "ok" : "off"} />
-        <Row label="Tables" value={schemaReady ? "ok" : "missing"} />
-        <Row label="workspace_records" value={extrasReady ? "ok" : "run upgrade.sql"} />
-        <Row label={lang === "fr" ? "Jours" : "أيام"} value={String(entryCount)} />
-        <Row label={lang === "fr" ? "Produits" : "منتجات"} value={String(productCount)} />
-      </article>
-    </div>
-  );
-}
+      <Section title={t("settings.advanced")} hint={t("settings.advancedHint")}>
+        <div className="space-y-5">
+          {SETTINGS_TOOL_GROUPS.map((group) => (
+            <div key={group.titleKey}>
+              <p className="cb-kicker mb-2">{t(group.titleKey)}</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {group.items.map((navItem) => (
+                  <Link
+                    key={navItem.href}
+                    href={navItem.href}
+                    className="flex items-start gap-3 rounded-[10px] border border-line bg-background px-3.5 py-3 transition hover:border-forest-mid"
+                  >
+                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-card text-forest-mid">
+                      <NavIcon name={navItem.icon} className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <p className="text-sm font-semibold">{t(navItem.labelKey)}</p>
+                      <p className="mt-0.5 text-xs text-muted">{t(navItem.hintKey)}</p>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-line/70 py-2 last:border-0">
-      <span className="text-muted">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <Section title={t("settings.system")}>
+        <SettingRow label={t("common.currency")}>
+          <span className="cb-badge cb-badge-muted">{currency}</span>
+        </SettingRow>
+        <SettingRow label={t("settings.password")}>
+          <StatusBadge ok={passwordEnabled} onLabel={t("settings.on")} offLabel={t("settings.off")} />
+        </SettingRow>
+        <SettingRow label="Supabase">
+          <StatusBadge ok={supabaseReady} onLabel={t("settings.ok")} offLabel={t("settings.off")} />
+        </SettingRow>
+        <SettingRow label="Tables">
+          <StatusBadge ok={schemaReady} onLabel={t("settings.ok")} offLabel={t("settings.missing")} />
+        </SettingRow>
+        <SettingRow label="workspace_records">
+          <StatusBadge ok={extrasReady} onLabel={t("settings.ok")} offLabel={t("settings.missing")} />
+        </SettingRow>
+      </Section>
     </div>
   );
 }

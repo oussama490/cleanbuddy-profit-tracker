@@ -28,7 +28,7 @@ type Prefs = {
   setLang: (lang: Lang) => void;
   setTheme: (theme: Theme) => void;
   setShop: (shop: ShopSettings) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string | number>) => string;
 };
 
 const PrefsContext = createContext<Prefs | null>(null);
@@ -101,7 +101,11 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
     emit();
   }, []);
 
-  const t = useCallback((key: string) => translate(lang, key), [lang]);
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) =>
+      translate(lang, key, vars),
+    [lang],
+  );
 
   const value = useMemo(
     () => ({ lang, theme, shop, setLang, setTheme, setShop, t }),
@@ -115,4 +119,40 @@ export function usePrefs(): Prefs {
   const context = useContext(PrefsContext);
   if (!context) throw new Error("usePrefs must be used within PrefsProvider");
   return context;
+}
+
+export function LangToggle() {
+  const { lang, setLang, t } = usePrefs();
+  return (
+    <div className="cb-seg">
+      {(["ar", "fr"] as const).map((value) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => setLang(value)}
+          className={`cb-seg-item ${lang === value ? "cb-seg-item-on" : ""}`}
+        >
+          {t(`lang.${value}`)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function ThemeToggle() {
+  const { theme, setTheme, t } = usePrefs();
+  return (
+    <div className="cb-seg">
+      {(["light", "dark"] as const).map((value) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => setTheme(value)}
+          className={`cb-seg-item ${theme === value ? "cb-seg-item-on" : ""}`}
+        >
+          {t(`theme.${value}`)}
+        </button>
+      ))}
+    </div>
+  );
 }

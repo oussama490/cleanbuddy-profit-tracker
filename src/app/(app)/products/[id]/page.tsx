@@ -1,5 +1,5 @@
 import { ProductCalculator } from "@/components/ProductCalculator";
-import { PageHeader } from "@/components/ui";
+import { ProductDetailHeader } from "@/components/I18nHeader";
 import { getProduct, listProducts } from "@/app/actions/products";
 import { listDailyEntries } from "@/app/actions/daily";
 import { notFound } from "next/navigation";
@@ -21,11 +21,7 @@ export default async function ProductDetailPage({
 
   return (
     <div>
-      <PageHeader
-        kicker="تفاصيل المنتج"
-        title={product.product_name}
-        description="عدّل التكاليف والسعر هنا. الحفظ يحدّث الكتالوج فوراً."
-      />
+      <ProductDetailHeader name={product.product_name} />
       <ProductCalculator
         products={products}
         entries={entries}

@@ -129,7 +129,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
     setSalesModel(entry.ops.sales_model);
     setFulfillment(entry.ops.fulfillment);
     setCustomApp(entry.ops.fulfillment_custom);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setMessage(t("daily.loaded"));
   }
 
   function copyPrevious() {
@@ -137,7 +137,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
     const previous =
       entries.find((entry) => entry.entry_date === previousDate) ?? entries[0];
     if (!previous) {
-      setError(lang === "fr" ? "Aucun jour précédent." : "لا يوجد يوم سابق.");
+      setError(t("daily.noPrev"));
       return;
     }
     setForm({
@@ -167,7 +167,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (!activeSnapshot) {
-      setError("انتظر تحميل أسعار الصرف قبل الحفظ.");
+      setError(t("common.waitRates"));
       return;
     }
 
@@ -196,21 +196,21 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
         setError(result.error);
         return;
       }
-      setMessage(result.message ?? "تم الحفظ.");
+      setMessage(t("common.saved"));
       resetForm();
       router.refresh();
     });
   }
 
   function onDelete(id: string) {
-    if (!window.confirm("هل تريد حذف هذا الإدخال؟")) return;
+    if (!window.confirm(t("common.confirmDelete"))) return;
     startTransition(async () => {
       const result = await deleteDailyEntry(id);
       if (!result.ok) {
         setError(result.error);
         return;
       }
-      setMessage(result.message ?? "تم الحذف.");
+      setMessage(t("common.deleted"));
       if (form.id === id) resetForm();
       router.refresh();
     });
@@ -221,12 +221,12 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
       <form className="cb-card space-y-4" onSubmit={onSubmit}>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">إدخال اليوم</h2>
-            <p className="text-sm text-stone-500">التاريخ الافتراضي هو اليوم، ويمكن تعديله.</p>
+            <h2 className="text-lg font-semibold">{t("daily.title")}</h2>
+            <p className="text-sm text-muted">{t("daily.formHint")}</p>
           </div>
           {form.id ? (
             <button className="text-sm text-forest-mid underline" type="button" onClick={resetForm}>
-              إدخال جديد
+              {t("daily.new")}
             </button>
           ) : (
             <button className="cb-btn-ghost min-h-9 px-3 text-xs" type="button" onClick={copyPrevious}>
@@ -236,7 +236,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
         </div>
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-stone-700">التاريخ</span>
+          <span className="text-sm font-medium">{t("common.date")}</span>
           <input
             className="cb-input"
             type="date"
@@ -250,7 +250,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block space-y-2">
-            <span className="text-sm font-medium">نموذج البيع</span>
+            <span className="text-sm font-medium">{t("common.salesModel")}</span>
             <select
               className="cb-input"
               value={salesModel}
@@ -261,7 +261,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
             </select>
           </label>
           <label className="block space-y-2">
-            <span className="text-sm font-medium">التطبيق / المستودع</span>
+            <span className="text-sm font-medium">{t("common.app")}</span>
             <select
               className="cb-input"
               value={fulfillment}
@@ -312,8 +312,8 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
 
         <MoneyInput
           id="revenue"
-          label="إجمالي الإيرادات"
-          hint="يُدخل عادة بالبيزو المكسيكي"
+          label={t("dash.revenue")}
+          hint={t("daily.revenueHint")}
           amount={form.revenue_amount}
           currency={form.revenue_currency}
           onAmountChange={(value) =>
@@ -327,8 +327,8 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
 
         <MoneyInput
           id="ads"
-          label="تكلفة الإعلانات"
-          hint="تُدخل عادة بالدولار الأمريكي"
+          label={t("dash.ads")}
+          hint={t("daily.adsHint")}
           amount={form.ads_cost_amount}
           currency={form.ads_cost_currency}
           onAmountChange={(value) =>
@@ -341,52 +341,44 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
         />
 
         <label className="block space-y-2">
-          <span className="text-sm font-medium text-stone-700">تكلفة المنتج (من الحاسبة)</span>
+          <span className="text-sm font-medium">{t("daily.cogs")}</span>
           <select
             className="cb-input"
             value={productId}
             onChange={(event) => setProductId(event.target.value)}
           >
-            <option value="avg">متوسط كل المنتجات المحفوظة</option>
+            <option value="avg">{t("daily.avg")}</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.product_name}
               </option>
             ))}
           </select>
-          <p className="text-xs text-stone-500">
-            تكلفة الوحدة المستخدمة:{" "}
+          <p className="text-xs text-muted">
+            {t("daily.unitCost")}:{" "}
             {activeSnapshot
               ? formatMoney(
                   convertFromCad(unitCogsCad, displayCurrency, activeSnapshot),
                   displayCurrency,
                 )
               : "—"}
-            {products.length === 0
-              ? " — احفظ منتجاً في صفحة المنتجات لاحتساب أدق."
-              : null}
+            {products.length === 0 ? ` — ${t("dash.noProductsBody")}` : null}
           </p>
         </label>
 
         <button className="cb-btn w-full" disabled={pending} type="submit">
-          {pending ? "جاري الحفظ..." : form.id ? "تحديث الإدخال" : "حفظ اليوم"}
+          {pending ? t("common.saving") : form.id ? t("daily.update") : t("daily.save")}
         </button>
-        {ratesError ? <p className="text-sm text-red-700">{ratesError}</p> : null}
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        {message ? <p className="text-sm text-teal-800">{message}</p> : null}
+        {ratesError ? <p className="text-sm text-loss">{ratesError}</p> : null}
+        {error ? <p className="text-sm text-loss">{error}</p> : null}
+        {message ? <p className="text-sm text-forest-mid">{message}</p> : null}
       </form>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <Kpi label={t("daily.confirmRate")} value={formatPercent(confirmationRate(previewEntry))} />
+        <Kpi label={t("daily.deliverRate")} value={formatPercent(deliveryRate(previewEntry))} />
         <Kpi
-          label="معدل التأكيد"
-          value={formatPercent(confirmationRate(previewEntry))}
-        />
-        <Kpi
-          label="معدل التسليم"
-          value={formatPercent(deliveryRate(previewEntry))}
-        />
-        <Kpi
-          label={`صافي الربح (${displayCurrency})`}
+          label={`${t("daily.net")} (${displayCurrency})`}
           value={formatMoney(previewProfitDisplay, displayCurrency)}
         />
       </div>
@@ -394,26 +386,26 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
       <DailyChart entries={entries} unitCogsCad={unitCogsCad} />
 
       <section className="cb-card overflow-hidden p-0">
-        <div className="border-b border-stone-200 px-4 py-3">
-          <h2 className="text-base font-semibold">كل الإدخالات</h2>
+        <div className="border-b border-line px-4 py-3">
+          <h2 className="text-base font-semibold">{t("daily.all")}</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-right text-sm">
-            <thead className="bg-stone-50 text-stone-500">
+          <table className="cb-table">
+            <thead>
               <tr>
-                <th className="px-3 py-3 font-medium">التاريخ</th>
-                <th className="px-3 py-3 font-medium">طلبات</th>
-                <th className="px-3 py-3 font-medium">تأكيد / تسليم</th>
-                <th className="px-3 py-3 font-medium">إيرادات</th>
-                <th className="px-3 py-3 font-medium">صافي الربح</th>
-                <th className="px-3 py-3 font-medium"> </th>
+                <th>{t("common.date")}</th>
+                <th>{t("dash.orders")}</th>
+                <th>{t("dash.confirmDeliver")}</th>
+                <th>{t("dash.revenue")}</th>
+                <th>{t("daily.net")}</th>
+                <th> </th>
               </tr>
             </thead>
             <tbody>
               {entries.length === 0 ? (
                 <tr>
-                  <td className="px-3 py-8 text-center text-stone-500" colSpan={6}>
-                    لا توجد إدخالات بعد.
+                  <td className="py-8 text-center text-muted" colSpan={6}>
+                    {t("daily.none")}
                   </td>
                 </tr>
               ) : (
@@ -430,37 +422,37 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
                     entry.exchange_rate_snapshot,
                   );
                   return (
-                    <tr key={entry.id} className="border-t border-stone-100">
-                      <td className="whitespace-nowrap px-3 py-3">
+                    <tr key={entry.id}>
+                      <td className="whitespace-nowrap">
                         {formatDisplayDate(entry.entry_date)}
                       </td>
-                      <td className="px-3 py-3">{entry.new_orders}</td>
-                      <td className="px-3 py-3">
+                      <td className="cb-num">{entry.new_orders}</td>
+                      <td className="cb-num">
                         {formatPercent(confirmationRate(entry))}
-                        <span className="text-stone-400"> / </span>
+                        <span className="text-muted"> / </span>
                         {formatPercent(deliveryRate(entry))}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3">
+                      <td className="cb-num whitespace-nowrap">
                         {formatMoney(revenueDisplay, displayCurrency)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3">
+                      <td className="cb-num whitespace-nowrap">
                         {formatMoney(profitDisplay, displayCurrency)}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-3">
+                      <td className="whitespace-nowrap">
                         <div className="flex gap-2">
                           <button
-                            className="text-teal-800 underline"
+                            className="text-forest-mid underline"
                             type="button"
                             onClick={() => loadEntry(entry)}
                           >
-                            تعديل
+                            {t("common.edit")}
                           </button>
                           <button
-                            className="text-red-700 underline"
+                            className="text-loss underline"
                             type="button"
                             onClick={() => onDelete(entry.id)}
                           >
-                            حذف
+                            {t("delete")}
                           </button>
                         </div>
                       </td>
@@ -487,7 +479,7 @@ function NumberField({
 }) {
   return (
     <label className="block space-y-2">
-      <span className="text-sm font-medium text-stone-700">{label}</span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
       <input
         className="cb-input"
         inputMode="numeric"
@@ -501,9 +493,9 @@ function NumberField({
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <article className="cb-card">
-      <p className="text-xs text-stone-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-teal-900">{value}</p>
+    <article className="cb-kpi">
+      <p className="text-xs text-muted">{label}</p>
+      <p className="cb-num mt-1 text-2xl font-semibold text-foreground">{value}</p>
     </article>
   );
 }

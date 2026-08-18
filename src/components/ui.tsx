@@ -1,3 +1,6 @@
+"use client";
+
+import { usePrefs } from "@/components/PrefsProvider";
 import type { ReactNode } from "react";
 
 export function PageHeader({
@@ -12,12 +15,12 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div className="max-w-2xl">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="max-w-xl">
         {kicker ? <p className="cb-kicker mb-2">{kicker}</p> : null}
         <h1 className="cb-page-title">{title}</h1>
         {description ? (
-          <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
+          <p className="mt-1.5 text-sm leading-6 text-muted">{description}</p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
@@ -43,15 +46,17 @@ export function KpiCard({
         ? "text-loss"
         : tone === "gold"
           ? "text-gold"
-          : "text-forest-mid";
+          : "text-foreground";
 
   return (
     <article className="cb-kpi">
-      <p className="text-xs font-medium text-muted">{label}</p>
-      <p className={`mt-2 text-2xl font-bold tracking-tight ${valueClass}`}>
+      <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+        {label}
+      </p>
+      <p className={`cb-num mt-2.5 text-[1.6rem] font-semibold leading-none ${valueClass}`}>
         {value}
       </p>
-      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-2 text-xs text-muted">{hint}</p> : null}
     </article>
   );
 }
@@ -64,7 +69,7 @@ export function EmptyState({
   body: string;
 }) {
   return (
-    <div className="rounded-[1.4rem] border border-dashed border-line bg-card/60 px-5 py-12 text-center">
+    <div className="border border-dashed border-line bg-background px-5 py-12 text-center" style={{ borderRadius: "var(--radius)" }}>
       <p className="font-semibold">{title}</p>
       <p className="mt-1 text-sm text-muted">{body}</p>
     </div>
@@ -72,11 +77,64 @@ export function EmptyState({
 }
 
 export function ExtrasBanner({ ready }: { ready: boolean }) {
+  const { t } = usePrefs();
   if (ready) return null;
+  return <p className="cb-notice mb-4">{t("extras.banner")}</p>;
+}
+
+export function Section({
+  title,
+  hint,
+  children,
+  footer,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
   return (
-    <p className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-      لحفظ الملاحظات والأهداف والخزينة والموردين، أعد تشغيل ملف schema.sql في
-      Supabase (يضيف جدول workspace_records دون مسح بياناتك الحالية).
-    </p>
+    <section className="cb-card mb-4 overflow-hidden p-0">
+      <header className="border-b border-line px-5 py-4">
+        <p className="cb-section-title">{title}</p>
+        {hint ? <p className="mt-1 text-sm text-muted">{hint}</p> : null}
+      </header>
+      <div className="px-5 py-5">{children}</div>
+      {footer ? (
+        <footer className="border-t border-line bg-background/70 px-5 py-3">{footer}</footer>
+      ) : null}
+    </section>
+  );
+}
+
+export function SettingRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-0 last:pb-0 first:pt-0">
+      <p className="text-sm font-medium">{label}</p>
+      {children}
+    </div>
+  );
+}
+
+export function StatusBadge({
+  ok,
+  onLabel,
+  offLabel,
+}: {
+  ok: boolean;
+  onLabel: string;
+  offLabel: string;
+}) {
+  return (
+    <span className={`cb-badge ${ok ? "cb-badge-ok" : "cb-badge-off"}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-profit" : "bg-loss"}`} />
+      {ok ? onLabel : offLabel}
+    </span>
   );
 }

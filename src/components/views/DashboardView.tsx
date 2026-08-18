@@ -2,12 +2,11 @@
 
 import { DailyChart } from "@/components/DailyChart";
 import { useDisplayCurrency } from "@/components/DisplayCurrency";
-import { EmptyState, KpiCard, PageHeader } from "@/components/ui";
+import { EmptyState, KpiCard } from "@/components/ui";
 import {
   deltaPct,
   filterEntries,
   money,
-  periodLabel,
   periodStart,
   previousPeriodRange,
   summarizePeriod,
@@ -23,7 +22,7 @@ import type {
   ProductCalculation,
   WorkspaceRecord,
 } from "@/lib/types";
-import { RitualStrip } from "@/components/views/LifeViews";
+import { usePrefs } from "@/components/PrefsProvider";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -41,6 +40,7 @@ export function DashboardView({
   goals: WorkspaceRecord[];
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const [period, setPeriod] = useState<PeriodKey>("30");
   const unitCogsCad = unitCogsFromProducts(products);
   const from = periodStart(period);
@@ -97,104 +97,108 @@ export function DashboardView({
 
   return (
     <div>
-      <PageHeader
-        kicker="لوحة التحكم"
-        title={new Date().getHours() < 17 ? "صباح الخير" : "مساء الخير"}
-        description="ملخص ربحك، قمعك، وإعلاناتك — في شاشة واحدة، لك وحدك."
-        actions={
-          <Link href="/daily" className="cb-btn px-5">
-            إدخال اليوم
+      <section className="cb-till mb-6">
+        <div className="relative z-[1] flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--led)]">
+              {t("dash.profit")} · {t(`period.${period}`)}
+            </p>
+            <p className="cb-till-num mt-3">{show(summary.profitCad)}</p>
+            <p className="mt-3 text-sm text-white/50">
+              {profitDelta === null
+                ? t("dash.noCompare")
+                : `${profitDelta >= 0 ? "+" : ""}${(profitDelta * 100).toFixed(1)}% ${t("dash.vsPrev")}`}
+            </p>
+          </div>
+          <Link href="/daily" className="cb-btn-led px-5">
+            {t("enter.today")}
           </Link>
-        }
-      />
-      <RitualStrip entries={entries} products={products} snapshot={snapshot} />
+        </div>
+      </section>
 
-      <div className="mb-5 flex flex-wrap gap-2">
-        {PERIODS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setPeriod(key)}
-            className={`min-h-10 rounded-full px-4 text-sm font-semibold ${
-              period === key
-                ? "bg-forest text-white"
-                : "border border-line bg-card text-muted"
-            }`}
-          >
-            {periodLabel(key)}
-          </button>
-        ))}
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="cb-page-title">
+            {new Date().getHours() < 17 ? t("greeting.morning") : t("greeting.evening")}
+          </h1>
+          <p className="mt-1 text-sm text-muted">{t("dash.desc")}</p>
+        </div>
+        <div className="cb-seg">
+          {PERIODS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setPeriod(key)}
+              className={`cb-seg-item whitespace-nowrap px-3 text-[12px] ${
+                period === key ? "cb-seg-item-on" : ""
+              }`}
+            >
+              {t(`period.${key}`)}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-3">
         <KpiCard
-          label={`صافي الربح · ${periodLabel(period)}`}
-          value={show(summary.profitCad)}
-          hint={
-            profitDelta === null
-              ? "لا مقارنة بعد"
-              : `${profitDelta >= 0 ? "+" : ""}${(profitDelta * 100).toFixed(1)}% مقابل الفترة السابقة`
-          }
-          tone={summary.profitCad >= 0 ? "profit" : "loss"}
+          label={t("dash.revenue")}
+          value={show(summary.revenueCad)}
+          hint={t("dash.deliveredCount", { n: summary.delivered })}
         />
-        <KpiCard label="الإيرادات" value={show(summary.revenueCad)} hint={`${summary.delivered} طلب مسلّم`} />
         <KpiCard
-          label="تكلفة الإعلانات"
+          label={t("dash.ads")}
           value={show(summary.adsCad)}
-          hint={summary.roas ? `ROAS ${summary.roas.toFixed(2)}x` : "لا إعلانات بعد"}
+          hint={summary.roas ? `ROAS ${summary.roas.toFixed(2)}x` : t("dash.noAds")}
           tone="gold"
         />
         <KpiCard
-          label="قمع التحويل"
+          label={t("dash.funnel")}
           value={`${formatPercent(summary.confirmationRate)} / ${formatPercent(summary.deliveryRate)}`}
-          hint="تأكيد / تسليم"
+          hint={t("dash.confirmDeliver")}
         />
       </div>
 
       <div className="mb-5 grid gap-3 lg:grid-cols-3">
         <article className="cb-card lg:col-span-2">
-          <p className="text-sm font-semibold">اليوم</p>
+          <p className="text-sm font-semibold">{t("dash.today")}</p>
           {todaySummary ? (
             <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Mini label="طلبات" value={String(todaySummary.newOrders)} />
-              <Mini label="مسلّم" value={String(todaySummary.delivered)} />
-              <Mini label="إيراد" value={show(todaySummary.revenueCad)} />
-              <Mini
-                label="ربح"
-                value={show(todaySummary.profitCad)}
-              />
+              <Mini label={t("dash.orders")} value={String(todaySummary.newOrders)} />
+              <Mini label={t("dash.delivered")} value={String(todaySummary.delivered)} />
+              <Mini label={t("dash.rev")} value={show(todaySummary.revenueCad)} />
+              <Mini label={t("dash.profitShort")} value={show(todaySummary.profitCad)} />
             </div>
           ) : (
             <p className="mt-3 text-sm text-muted">
-              لم تُسجّل أرقام اليوم بعد.{" "}
+              {t("dash.noToday")}{" "}
               <Link className="font-semibold text-forest-mid underline" href="/daily">
-                أضف الإدخال
+                {t("dash.addToday")}
               </Link>
             </p>
           )}
         </article>
         <article className="cb-card">
-          <p className="text-sm font-semibold">هدف الشهر</p>
+          <p className="text-sm font-semibold">{t("dash.monthGoal")}</p>
           {activeGoal && goalAmountCad > 0 ? (
             <>
-              <p className="mt-3 text-2xl font-bold text-forest-mid">
+              <p className="cb-num mt-3 text-2xl font-semibold text-foreground">
                 {show(monthSummary.profitCad)}
               </p>
               <p className="text-xs text-muted">
-                من {show(goalAmountCad)} · {activeGoal.title}
+                {t("dash.from")} {show(goalAmountCad)} · {activeGoal.title}
               </p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-line">
                 <div
-                  className="h-full rounded-full bg-gold"
+                  className="h-full rounded-full bg-forest-mid"
                   style={{ width: `${goalProgress}%` }}
                 />
               </div>
             </>
           ) : (
             <p className="mt-3 text-sm text-muted">
-              لا هدف بعد.{" "}
+              {t("dash.noGoal")}{" "}
               <Link className="font-semibold text-forest-mid underline" href="/goals">
-                حدّد هدف الربح
+                {t("dash.setGoal")}
               </Link>
             </p>
           )}
@@ -205,68 +209,46 @@ export function DashboardView({
         <DailyChart entries={currentEntries} unitCogsCad={unitCogsCad} />
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2">
-        <article className="cb-card">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="font-semibold">المنتجات حسب الهامش</p>
-            <Link href="/products" className="text-sm text-forest-mid underline">
-              الحاسبة
-            </Link>
-          </div>
-          {ranked.length === 0 ? (
-            <EmptyState title="لا منتجات بعد" body="احفظ منتجاً في حاسبة التسعير لترتيب الهوامش." />
-          ) : (
-            <ul className="space-y-2">
-              {ranked.slice(0, 5).map(({ product, pricing }) => (
-                <li key={product.id}>
-                  <Link
-                    href={`/products/${product.id}`}
-                    className="flex items-center justify-between rounded-2xl border border-line bg-white px-3 py-3"
+      <article className="cb-card">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="font-semibold">{t("dash.byMargin")}</p>
+          <Link href="/products" className="text-sm text-forest-mid underline">
+            {t("dash.calc")}
+          </Link>
+        </div>
+        {ranked.length === 0 ? (
+          <EmptyState title={t("dash.noProducts")} body={t("dash.noProductsBody")} />
+        ) : (
+          <ul className="space-y-2">
+            {ranked.slice(0, 5).map(({ product, pricing }) => (
+              <li key={product.id}>
+                <Link
+                  href={`/products/${product.id}`}
+                    className="flex items-center justify-between rounded-lg border border-line bg-background px-3 py-3"
+                >
+                  <span className="font-medium">{product.product_name}</span>
+                  <span
+                    className={`text-sm font-semibold ${
+                      pricing.isHealthy ? "text-profit" : "text-loss"
+                    }`}
                   >
-                    <span className="font-medium">{product.product_name}</span>
-                    <span
-                      className={`text-sm font-semibold ${
-                        pricing.isHealthy ? "text-profit" : "text-loss"
-                      }`}
-                    >
-                      {pricing.marginPercent.toFixed(1)}%
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </article>
-        <article className="cb-card">
-          <p className="font-semibold">اختصارات</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {[
-              ["/ads", "إعلانات", "CPA وROAS"],
-              ["/funnel", "القمع", "تأكيد وتسليم"],
-              ["/simulate", "محاكاة", "ميزانية يومية"],
-              ["/reports", "تقرير", "تصدير CSV"],
-            ].map(([href, label, hint]) => (
-              <Link
-                key={href}
-                href={href}
-                className="rounded-2xl border border-line bg-white px-3 py-3"
-              >
-                <p className="text-sm font-semibold">{label}</p>
-                <p className="text-xs text-muted">{hint}</p>
-              </Link>
+                    {pricing.marginPercent.toFixed(1)}%
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
-        </article>
-      </div>
+          </ul>
+        )}
+      </article>
     </div>
   );
 }
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-[#f6f1e8] px-3 py-3">
+    <div className="rounded-lg bg-background px-3 py-3">
       <p className="text-[11px] text-muted">{label}</p>
-      <p className="mt-1 text-lg font-bold text-forest-mid">{value}</p>
+      <p className="cb-num mt-1 text-lg font-semibold text-foreground">{value}</p>
     </div>
   );
 }

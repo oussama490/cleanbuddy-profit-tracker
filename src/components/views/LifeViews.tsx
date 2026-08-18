@@ -149,7 +149,7 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
         description={lang === "fr" ? "Vert = saisi. Vide = oublié." : "أخضر = مسجّل. فارغ = منسي."}
       />
       {missed ? (
-        <Link href="/daily" className="mb-4 block rounded-2xl border border-loss/30 bg-loss/10 px-4 py-3 text-sm">
+        <Link href="/daily" className="cb-alert mb-4">
           {t("missed.yesterday")}
         </Link>
       ) : null}
@@ -166,11 +166,11 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
             <Link
               key={iso}
               href="/daily"
-              className={`grid aspect-square place-items-center rounded-2xl text-sm font-semibold ${
+              className={`grid aspect-square place-items-center rounded-lg text-sm font-semibold ${
                 isLogged
                   ? "bg-profit text-white"
                   : isToday
-                    ? "bg-forest text-white"
+                    ? "bg-forest-mid text-white"
                     : "border border-line bg-card text-muted"
               }`}
             >
@@ -506,7 +506,7 @@ export function ShopifyView({
                     {lang === "fr" ? "Modifier" : "تعديل"}
                   </button>
                   <button
-                    className="min-h-10 rounded-2xl border border-loss/30 px-3 text-sm font-semibold text-loss"
+                    className="cb-btn-ghost min-h-10 px-3 text-loss"
                     type="button"
                     onClick={() => removeStore(store)}
                   >
@@ -620,7 +620,7 @@ export function RitualStrip({
   return (
     <div className="mb-5 space-y-3">
       {missed ? (
-        <Link href="/daily" className="block rounded-2xl border border-loss/30 bg-loss/10 px-4 py-3 text-sm">
+        <Link href="/daily" className="cb-alert">
           {t("missed.yesterday")}
         </Link>
       ) : null}

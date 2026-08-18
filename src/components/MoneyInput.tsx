@@ -4,6 +4,7 @@ import { convertAmount, otherCurrencies } from "@/lib/currency";
 import { formatMoney } from "@/lib/format";
 import type { Currency, ExchangeRateSnapshot } from "@/lib/types";
 import { CURRENCIES } from "@/lib/types";
+import { usePrefs } from "@/components/PrefsProvider";
 
 type MoneyInputProps = {
   id: string;
@@ -26,12 +27,13 @@ export function MoneyInput({
   snapshot,
   hint,
 }: MoneyInputProps) {
+  const { t } = usePrefs();
   const numericAmount = Number(amount);
   const hasAmount = amount !== "" && Number.isFinite(numericAmount);
 
   return (
     <label className="block space-y-2" htmlFor={id}>
-      <span className="text-sm font-medium text-stone-700">{label}</span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
       <div className="flex gap-2">
         <input
           id={id}
@@ -43,7 +45,7 @@ export function MoneyInput({
           placeholder="0"
         />
         <select
-          aria-label="العملة"
+          aria-label={t("common.currency")}
           className="cb-input w-24 shrink-0 px-2"
           value={currency}
           onChange={(event) =>
@@ -57,8 +59,8 @@ export function MoneyInput({
           ))}
         </select>
       </div>
-      {hint ? <p className="text-xs text-stone-500">{hint}</p> : null}
-      <p className="min-h-5 text-xs text-teal-800">
+      {hint ? <p className="text-xs text-muted">{hint}</p> : null}
+      <p className="min-h-5 text-xs text-forest-mid">
         {hasAmount && snapshot
           ? `= ${otherCurrencies(currency)
               .map((code) =>
@@ -69,8 +71,8 @@ export function MoneyInput({
               )
               .join(" / ")}`
           : snapshot
-            ? "أدخل مبلغاً لعرض التحويل"
-            : "جاري تحميل أسعار الصرف..."}
+            ? t("money.convert")
+            : t("money.loading")}
       </p>
     </label>
   );

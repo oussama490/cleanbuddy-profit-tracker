@@ -1,6 +1,7 @@
 "use client";
 
 import { useRates } from "@/components/RatesProvider";
+import { usePrefs } from "@/components/PrefsProvider";
 import { EmptyState, KpiCard, PageHeader } from "@/components/ui";
 import { uniqueSnapshots } from "@/lib/insights";
 import { formatDisplayDate, formatNumber } from "@/lib/format";
@@ -14,6 +15,7 @@ export function RatesView({
   snapshot: ExchangeRateSnapshot | null;
 }) {
   const { refresh, loading, error } = useRates();
+  const { t } = usePrefs();
   const current = snapshot;
   const history = uniqueSnapshots(entries);
 
@@ -26,12 +28,12 @@ export function RatesView({
   return (
     <div>
       <PageHeader
-        kicker="أسعار الصرف"
+        kicker={t("nav.rates")}
         title="MXN · USD · CAD"
-        description="المرجع الداخلي هو الدولار الكندي. كل إدخال يومي يحتفظ بلقطة حتى لا يتغيّر التاريخ."
+        description={t("rates.desc")}
         actions={
           <button className="cb-btn-ghost" type="button" onClick={() => void refresh()} disabled={loading}>
-            {loading ? "جاري التحديث..." : "تحديث الآن"}
+            {loading ? t("rates.refreshing") : t("rates.refresh")}
           </button>
         }
       />
@@ -40,31 +42,31 @@ export function RatesView({
         <KpiCard label="1 CAD = MXN" value={cadPer("MXN")} tone="gold" />
         <KpiCard label="1 CAD = USD" value={cadPer("USD")} />
         <KpiCard
-          label="تاريخ السوق"
+          label={t("rates.market")}
           value={current?.date ? formatDisplayDate(current.date) : "—"}
-          hint={current ? "Frankfurter" : "غير محمّل"}
+          hint={current ? "Frankfurter" : t("rates.none")}
         />
       </div>
       {history.length === 0 ? (
-        <EmptyState title="لا لقطات تاريخية" body="ستظهر هنا أسعار الأيام التي حفظتها." />
+        <EmptyState title={t("rates.empty")} body={t("rates.emptyBody")} />
       ) : (
         <section className="cb-card overflow-hidden p-0">
-          <div className="border-b border-line px-4 py-3 font-semibold">لقطات محفوظة مع الإدخالات</div>
+          <div className="border-b border-line px-4 py-3 font-semibold">{t("rates.saved")}</div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-right text-sm">
-              <thead className="bg-[#f6f1e8] text-muted">
+            <table className="cb-table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 font-medium">التاريخ</th>
-                  <th className="px-4 py-3 font-medium">MXN / CAD</th>
-                  <th className="px-4 py-3 font-medium">USD / CAD</th>
+                  <th>{t("common.date")}</th>
+                  <th>MXN / CAD</th>
+                  <th>USD / CAD</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item) => (
-                  <tr key={item.date} className="border-t border-line/70">
-                    <td className="px-4 py-3">{formatDisplayDate(item.date)}</td>
-                    <td className="px-4 py-3">{formatNumber(1 / item.toCad.MXN, 4)}</td>
-                    <td className="px-4 py-3">{formatNumber(1 / item.toCad.USD, 4)}</td>
+                  <tr key={item.date}>
+                    <td>{formatDisplayDate(item.date)}</td>
+                    <td className="cb-num">{formatNumber(1 / item.toCad.MXN, 4)}</td>
+                    <td className="cb-num">{formatNumber(1 / item.toCad.USD, 4)}</td>
                   </tr>
                 ))}
               </tbody>

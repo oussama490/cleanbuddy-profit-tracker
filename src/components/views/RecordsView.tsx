@@ -5,95 +5,13 @@ import {
   saveWorkspaceRecord,
 } from "@/app/actions/workspace";
 import { MoneyInput } from "@/components/MoneyInput";
+import { usePrefs } from "@/components/PrefsProvider";
 import { useRates } from "@/components/RatesProvider";
 import { EmptyState, ExtrasBanner, PageHeader } from "@/components/ui";
 import { formatDisplayDate, formatMoney, todayIsoDate } from "@/lib/format";
 import type { Currency, WorkspaceKind, WorkspaceRecord } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
-
-const COPY: Record<
-  WorkspaceKind,
-  { kicker: string; title: string; description: string; titleLabel: string; bodyLabel: string }
-> = {
-  journal: {
-    kicker: "اليومية",
-    title: "ملاحظاتك",
-    description: "ما تغيّر اليوم: كرييتف، شحن، مشكلة تأكيد. لك وحدك.",
-    titleLabel: "العنوان",
-    bodyLabel: "التفاصيل",
-  },
-  goal: {
-    kicker: "الأهداف",
-    title: "هدف الربح",
-    description: "ضع مبلغاً. اللوحة تتابع تقدّم الشهر.",
-    titleLabel: "اسم الهدف",
-    bodyLabel: "ملاحظة",
-  },
-  cash: {
-    kicker: "الخزينة",
-    title: "حركة نقدية",
-    description: "تحويل، سحب، مصروف. الموجب دخول، السالب خروج.",
-    titleLabel: "البيان",
-    bodyLabel: "ملاحظة",
-  },
-  supplier: {
-    kicker: "الموردون",
-    title: "دفتر الموردين",
-    description: "اسم، تواصل، وتكلفة تقريبية.",
-    titleLabel: "اسم المورد",
-    bodyLabel: "تفاصيل / تواصل",
-  },
-  checklist: {
-    kicker: "اليوم",
-    title: "مهام اليوم",
-    description: "روتينك. أضف مهمة أو استخدم القائمة الجاهزة.",
-    titleLabel: "المهمة",
-    bodyLabel: "تفاصيل",
-  },
-  bill: {
-    kicker: "الفواتير",
-    title: "ما يجب دفعه",
-    description: "Meta، Dropi، CJ، إنترنت، Shopify. التاريخ = الاستحقاق.",
-    titleLabel: "الفاتورة",
-    bodyLabel: "ملاحظة",
-  },
-  payout: {
-    kicker: "COD",
-    title: "تحويل متوقع",
-    description: "أضف تحويلاً يدوياً إن لزم. الصفحة تحسب أيضاً تلقائياً.",
-    titleLabel: "البيان",
-    bodyLabel: "ملاحظة",
-  },
-  creative: {
-    kicker: "الكرييتفز",
-    title: "ما يبقى وما يُقتل",
-    description: "اسم الكرييتف + ملاحظة. المبلغ = إنفاق تقريبي.",
-    titleLabel: "اسم الكرييتف",
-    bodyLabel: "لماذا نُبقيه أو نقتله",
-  },
-  review: {
-    kicker: "الأسبوع",
-    title: "مراجعة الأسبوع",
-    description: "3 جمل: ما نجح، ما فشل، هدف الأسبوع القادم.",
-    titleLabel: "عنوان الأسبوع",
-    bodyLabel: "المراجعة",
-  },
-  expense: {
-    kicker: "المصاريف",
-    title: "شخصي vs بزنس",
-    description: "أضف مصروفاً. اكتب في التفاصيل: شخصي أو بزنس.",
-    titleLabel: "المصروف",
-    bodyLabel: "شخصي أو بزنس + ملاحظة",
-  },
-  shop: {
-    kicker: "Shopify",
-    title: "المتجر",
-    description: "إعدادات المتجر.",
-    titleLabel: "الاسم",
-    bodyLabel: "رابط",
-  },
-};
 
 export function RecordsView({
   kind,
@@ -106,7 +24,7 @@ export function RecordsView({
   extrasReady: boolean;
   hideHeader?: boolean;
 }) {
-  const copy = COPY[kind];
+  const { t } = usePrefs();
   const router = useRouter();
   const { snapshot } = useRates();
   const [title, setTitle] = useState("");
@@ -132,7 +50,7 @@ export function RecordsView({
       setError(null);
       const result = await saveWorkspaceRecord({
         kind,
-        title: title || (kind === "cash" ? "حركة" : ""),
+        title: title || (kind === "cash" ? t("records.movement") : ""),
         body,
         amount: Number(amount) || 0,
         currency,
@@ -142,14 +60,14 @@ export function RecordsView({
         setError(result.error);
         return;
       }
-      setMessage(result.message ?? "تم الحفظ.");
+      setMessage(t("common.saved"));
       reset();
       router.refresh();
     });
   }
 
   function onDelete(id: string) {
-    if (!window.confirm("حذف هذا السجل؟")) return;
+    if (!window.confirm(t("common.confirmDelete"))) return;
     startTransition(async () => {
       const result = await deleteWorkspaceRecord(id);
       if (!result.ok) {
@@ -168,17 +86,21 @@ export function RecordsView({
   return (
     <div>
       {!hideHeader ? (
-        <PageHeader kicker={copy.kicker} title={copy.title} description={copy.description} />
+        <PageHeader
+          kicker={t(`kind.${kind}.kicker`)}
+          title={t(`kind.${kind}.title`)}
+          description={t(`kind.${kind}.desc`)}
+        />
       ) : null}
       <ExtrasBanner ready={extrasReady} />
       <form className="cb-card mb-5 space-y-4" onSubmit={onSubmit}>
         <label className="block space-y-2">
-          <span className="text-sm font-medium">{copy.titleLabel}</span>
+          <span className="text-sm font-medium">{t(`kind.${kind}.titleLabel`)}</span>
           <input className="cb-input" value={title} onChange={(event) => setTitle(event.target.value)} />
         </label>
         {kind !== "goal" ? (
           <label className="block space-y-2">
-            <span className="text-sm font-medium">التاريخ</span>
+            <span className="text-sm font-medium">{t("common.date")}</span>
             <input
               className="cb-input"
               type="date"
@@ -190,7 +112,7 @@ export function RecordsView({
         {showAmount ? (
           <MoneyInput
             id={`${kind}-amount`}
-            label={kind === "cash" ? "المبلغ (سالب = خروج)" : "المبلغ"}
+            label={kind === "cash" ? t("records.amountOut") : t("records.amount")}
             amount={amount}
             currency={currency}
             onAmountChange={setAmount}
@@ -199,7 +121,7 @@ export function RecordsView({
           />
         ) : null}
         <label className="block space-y-2">
-          <span className="text-sm font-medium">{copy.bodyLabel}</span>
+          <span className="text-sm font-medium">{t(`kind.${kind}.bodyLabel`)}</span>
           <textarea
             className="cb-input min-h-28 py-3"
             value={body}
@@ -207,7 +129,7 @@ export function RecordsView({
           />
         </label>
         <button className="cb-btn w-full" disabled={pending || !extrasReady} type="submit">
-          {pending ? "جاري الحفظ..." : "حفظ"}
+          {pending ? t("common.saving") : t("save")}
         </button>
         {error ? <p className="text-sm text-loss">{error}</p> : null}
         {message ? <p className="text-sm text-profit">{message}</p> : null}
@@ -215,19 +137,19 @@ export function RecordsView({
 
       {kind === "cash" && records.length > 0 ? (
         <p className="mb-3 text-sm text-muted">
-          مجموع الحركات المسجّلة (بدون تحويل): {formatMoney(cashTotal, "CAD")} — أدخل الكل بعملة واحدة للوضوح.
+          {t("records.cashTotal", { n: formatMoney(cashTotal, "CAD") })}
         </p>
       ) : null}
 
       {records.length === 0 ? (
-        <EmptyState title="لا سجلات بعد" body="أضف أول سجل أعلاه." />
+        <EmptyState title={t("records.none")} body={t("records.noneBody")} />
       ) : (
         <ul className="space-y-2">
           {records.map((record) => (
             <li key={record.id} className="cb-card">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold">{record.title || "بدون عنوان"}</p>
+                  <p className="font-semibold">{record.title || t("records.untitled")}</p>
                   <p className="text-xs text-muted">
                     {record.entry_date ? formatDisplayDate(record.entry_date) : formatDisplayDate(record.created_at.slice(0, 10))}
                   </p>
@@ -243,7 +165,7 @@ export function RecordsView({
                   type="button"
                   onClick={() => onDelete(record.id)}
                 >
-                  حذف
+                  {t("delete")}
                 </button>
               </div>
             </li>

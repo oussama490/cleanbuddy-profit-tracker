@@ -70,16 +70,14 @@ export function CurrencyToggle() {
   const { currency, setCurrency } = useDisplayCurrency();
 
   return (
-    <div className="inline-flex rounded-full border border-line bg-white p-1 shadow-sm">
+    <div className="cb-seg">
       {CURRENCIES.map((code) => (
         <button
           key={code}
           type="button"
           onClick={() => setCurrency(code)}
-          className={`min-h-9 rounded-full px-3 text-xs font-bold tracking-wide transition ${
-            currency === code
-              ? "bg-forest text-white"
-              : "text-forest-mid hover:bg-gold-soft/50"
+          className={`cb-seg-item ${
+            currency === code ? "cb-seg-item-on" : ""
           }`}
         >
           {code}

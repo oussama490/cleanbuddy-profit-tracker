@@ -4,9 +4,9 @@ import { convertFromCad } from "@/lib/currency";
 import { formatMoney } from "@/lib/format";
 import type { DailyEntry } from "@/lib/types";
 import { useDisplayCurrency } from "./DisplayCurrency";
+import { usePrefs } from "./PrefsProvider";
 import {
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -29,6 +29,7 @@ export function DailyChart({
   unitCogsCad: number;
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 29);
   cutoff.setHours(0, 0, 0, 0);
@@ -37,8 +38,12 @@ export function DailyChart({
     .filter((entry) => new Date(`${entry.entry_date}T00:00:00`) >= cutoff)
     .sort((a, b) => a.entry_date.localeCompare(b.entry_date))
     .map((entry) => {
-      const revenueCad = Number(entry.revenue_amount) * entry.exchange_rate_snapshot.toCad[entry.revenue_currency];
-      const adsCad = Number(entry.ads_cost_amount) * entry.exchange_rate_snapshot.toCad[entry.ads_cost_currency];
+      const revenueCad =
+        Number(entry.revenue_amount) *
+        entry.exchange_rate_snapshot.toCad[entry.revenue_currency];
+      const adsCad =
+        Number(entry.ads_cost_amount) *
+        entry.exchange_rate_snapshot.toCad[entry.ads_cost_currency];
       const profitCad = revenueCad - adsCad - Number(entry.delivered) * unitCogsCad;
       return {
         date: entry.entry_date.slice(5),
@@ -49,50 +54,73 @@ export function DailyChart({
 
   if (points.length === 0) {
     return (
-      <p className="rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-10 text-center text-sm text-stone-500">
-        لا توجد بيانات خلال آخر 30 يوماً لعرض الرسم البياني.
+      <p className="rounded-xl border border-dashed border-line bg-card px-4 py-10 text-center text-sm text-muted">
+        {t("chart.empty")}
       </p>
     );
   }
 
   return (
-    <div className="cb-card" dir="ltr">
-      <h2 className="mb-4 text-right text-base font-semibold text-stone-900">
-        تطور الإيرادات وصافي الربح — 30 يوماً ({currency})
-      </h2>
-      <div className="h-64 w-full">
+    <div className="cb-card">
+      <div className="mb-5 flex items-end justify-between gap-3">
+        <div>
+          <p className="cb-kicker">{currency}</p>
+          <h2 className="mt-1 text-[15px] font-semibold">{t("chart.title")}</h2>
+        </div>
+        <div className="flex gap-4 text-[11px] font-medium text-muted">
+          <span className="inline-flex items-center gap-1.5">
+            <i className="h-1.5 w-1.5 rounded-full bg-[#8ba3c7]" />
+            {t("chart.revenue")}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <i className="h-1.5 w-1.5 rounded-full bg-[var(--led)]" />
+            {t("chart.profit")}
+          </span>
+        </div>
+      </div>
+      <div className="h-56 w-full" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#e4dbce" strokeDasharray="3 3" />
-            <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#6f675c" }} />
+          <LineChart data={points} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="var(--line)" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 11, fill: "var(--muted)" }}
+              axisLine={false}
+              tickLine={false}
+            />
             <YAxis
-              tick={{ fontSize: 11, fill: "#6f675c" }}
-              width={56}
+              tick={{ fontSize: 11, fill: "var(--muted)" }}
+              axisLine={false}
+              tickLine={false}
+              width={48}
               tickFormatter={(value: number) =>
                 new Intl.NumberFormat("en", { notation: "compact" }).format(value)
               }
             />
             <Tooltip
+              contentStyle={{
+                background: "var(--card)",
+                border: "1px solid var(--line)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
               formatter={(value, name) => [
                 formatMoney(Number(value ?? 0), currency),
-                name === "profit" ? "صافي الربح" : "الإيرادات",
+                name === "profit" ? t("chart.profit") : t("chart.revenue"),
               ]}
-            />
-            <Legend
-              formatter={(value) => (value === "profit" ? "صافي الربح" : "الإيرادات")}
             />
             <Line
               type="monotone"
               dataKey="revenue"
-              stroke="#1c4a43"
-              strokeWidth={2}
+              stroke="#8ba3c7"
+              strokeWidth={1.75}
               dot={false}
             />
             <Line
               type="monotone"
               dataKey="profit"
-              stroke="#b0894d"
-              strokeWidth={2}
+              stroke="var(--led)"
+              strokeWidth={1.75}
               dot={false}
             />
           </LineChart>

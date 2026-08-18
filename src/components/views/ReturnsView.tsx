@@ -11,6 +11,7 @@ import {
   unitCogsFromProducts,
 } from "@/lib/insights";
 import { formatDisplayDate, formatMoney, formatPercent } from "@/lib/format";
+import { usePrefs } from "@/components/PrefsProvider";
 import type { DailyEntry, ExchangeRateSnapshot, ProductCalculation } from "@/lib/types";
 
 export function ReturnsView({
@@ -23,6 +24,7 @@ export function ReturnsView({
   snapshot: ExchangeRateSnapshot | null;
 }) {
   const { currency } = useDisplayCurrency();
+  const { t } = usePrefs();
   const unitCogsCad = unitCogsFromProducts(products);
   const month = filterEntries(entries, periodStart("30"));
   const summary = summarizePeriod(month, unitCogsCad);
@@ -37,26 +39,26 @@ export function ReturnsView({
   return (
     <div>
       <PageHeader
-        kicker="المرتجعات"
-        title="تكلفة الرفض"
-        description="الطلبات المرتجعة دفعت شحن وتكلفة منتج دون إيراد. هذا تقدير من أرقامك، لك وحدك."
+        kicker={t("nav.returns")}
+        title={t("returns.title")}
+        description={t("returns.desc")}
       />
       <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="مرتجع · ٣٠ يوماً" value={String(summary.returned)} tone="loss" />
-        <KpiCard label="نسبة الرفض من المؤكد" value={formatPercent(summary.returnRate)} />
-        <KpiCard label="تكلفة تقديرية" value={show(lossCad)} hint="منتج + شحن متوسط" />
-        <KpiCard label="مسلّم مقابل مرتجع" value={`${summary.delivered} / ${summary.returned}`} />
+        <KpiCard label={t("returns.count")} value={String(summary.returned)} tone="loss" />
+        <KpiCard label={t("returns.rate")} value={formatPercent(summary.returnRate)} />
+        <KpiCard label={t("returns.cost")} value={show(lossCad)} hint={t("returns.hint")} />
+        <KpiCard label={t("returns.vs")} value={`${summary.delivered} / ${summary.returned}`} />
       </div>
       {worst.length === 0 ? (
-        <EmptyState title="لا مرتجعات مسجّلة" body="إذا ظهر رفض في COD، سجّله في إدخال اليوم." />
+        <EmptyState title={t("returns.empty")} body={t("returns.emptyBody")} />
       ) : (
         <section className="cb-card overflow-hidden p-0">
-          <div className="border-b border-line px-4 py-3 font-semibold">أعلى أيام الرفض</div>
+          <div className="border-b border-line px-4 py-3 font-semibold">{t("returns.worst")}</div>
           <ul className="divide-y divide-line/80">
             {worst.map((entry) => (
               <li key={entry.id} className="flex items-center justify-between px-4 py-3 text-sm">
                 <span>{formatDisplayDate(entry.entry_date)}</span>
-                <span className="font-semibold text-loss">{entry.returned} مرتجع</span>
+                <span className="font-semibold text-loss">{t("returns.item", { n: entry.returned })}</span>
               </li>
             ))}
           </ul>
