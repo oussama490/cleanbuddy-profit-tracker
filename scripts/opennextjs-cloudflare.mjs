@@ -5,26 +5,23 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 function resolveCli() {
-  const candidates = [];
+  const fromCwd = path.join(
+    process.cwd(),
+    "node_modules/@opennextjs/cloudflare/dist/cli/index.js",
+  );
+  if (existsSync(fromCwd)) return fromCwd;
 
   try {
     const apiHref = import.meta.resolve("@opennextjs/cloudflare");
-    candidates.push(
-      path.resolve(path.dirname(fileURLToPath(apiHref)), "..", "cli", "index.js"),
+    const candidate = path.resolve(
+      path.dirname(fileURLToPath(apiHref)),
+      "..",
+      "cli",
+      "index.js",
     );
-  } catch {
-    // Fall through to the node_modules path.
-  }
-
-  candidates.push(
-    path.join(
-      process.cwd(),
-      "node_modules/@opennextjs/cloudflare/dist/cli/index.js",
-    ),
-  );
-
-  for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate;
+  } catch {
+    // Fall through.
   }
 
   throw new Error(
@@ -34,19 +31,16 @@ function resolveCli() {
 
 const realCli = resolveCli();
 const args = process.argv.slice(2);
-const command = args[0];
+const command = args[0] ?? "help";
 
-function run(cliArgs) {
-  const result = spawnSync(process.execPath, [realCli, ...cliArgs], {
-    stdio: "inherit",
-    env: process.env,
-  });
-  process.exitCode = result.status ?? 1;
-  if (result.status) process.exit(result.status);
-}
+console.error(`[cleanbuddy] opennext ${command} -> ${realCli}`);
 
-if (command === "deploy" || command === "upload") {
-  run(["build"]);
-}
+const result = spawnSync(process.execPath, [realCli, ...args], {
+  stdio: "inherit",
+  env: {
+    ...process.env,
+    CI: process.env.CI || "true",
+  },
+});
 
-run(args);
+process.exit(result.status ?? 1);
