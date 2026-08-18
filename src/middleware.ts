@@ -1,11 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_COOKIE, isValidAuthToken } from "@/lib/auth";
+import { appPassword } from "@/lib/env";
 
 const PUBLIC_PATHS = ["/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const password = process.env.APP_PASSWORD;
+  const password = appPassword();
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const authenticated =
     !password || (await isValidAuthToken(token, password));

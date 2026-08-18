@@ -2,7 +2,7 @@ import { listDailyEntries, tablesReady } from "@/app/actions/daily";
 import { listProducts } from "@/app/actions/products";
 import { AppShell } from "@/components/AppShell";
 import { fetchExchangeSnapshot } from "@/lib/currency";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { appPassword, isSupabaseConfigured } from "@/lib/env";
 import type { ExchangeRateSnapshot } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -21,7 +21,7 @@ export default async function Home() {
       products={products}
       supabaseReady={isSupabaseConfigured()}
       schemaReady={schemaReady}
-      passwordEnabled={Boolean(process.env.APP_PASSWORD)}
+      passwordEnabled={Boolean(appPassword())}
       initialSnapshot={rates.snapshot}
       ratesError={rates.error}
     />

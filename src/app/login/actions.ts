@@ -1,6 +1,7 @@
 "use server";
 
 import { AUTH_COOKIE, createAuthToken } from "@/lib/auth";
+import { appPassword } from "@/lib/env";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -9,7 +10,7 @@ export async function loginAction(
   formData: FormData,
 ): Promise<{ error: string } | null> {
   const password = String(formData.get("password") ?? "");
-  const expected = process.env.APP_PASSWORD;
+  const expected = appPassword();
 
   if (!expected) {
     return { error: "متغير APP_PASSWORD غير مضبوط." };

@@ -34,6 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
+# cloudflare / opennext
+.open-next/
+.wrangler/
+.dev.vars
+
 # vercel
 .vercel
 
