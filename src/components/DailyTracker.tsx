@@ -493,9 +493,9 @@ function NumberField({
 
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
-    <article className="cb-kpi">
+    <article className="cb-kpi min-w-0">
       <p className="text-xs text-muted">{label}</p>
-      <p className="cb-num mt-1 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="cb-num mt-1 break-words text-[clamp(1.1rem,4.5vw,1.5rem)] font-semibold text-foreground">{value}</p>
     </article>
   );
 }

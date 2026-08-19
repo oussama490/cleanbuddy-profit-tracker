@@ -15,8 +15,8 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-      <div className="max-w-xl">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3 sm:mb-8 sm:gap-4">
+      <div className="min-w-0 max-w-xl">
         {kicker ? <p className="cb-kicker mb-2">{kicker}</p> : null}
         <h1 className="cb-page-title">{title}</h1>
         {description ? (
@@ -49,11 +49,11 @@ export function KpiCard({
           : "text-foreground";
 
   return (
-    <article className="cb-kpi">
+    <article className="cb-kpi min-w-0">
       <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
         {label}
       </p>
-      <p className={`cb-num mt-2.5 text-[1.6rem] font-semibold leading-none ${valueClass}`}>
+      <p className={`cb-num mt-2.5 break-words text-[clamp(1.05rem,4.6vw,1.6rem)] font-semibold leading-none ${valueClass}`}>
         {value}
       </p>
       {hint ? <p className="mt-2 text-xs text-muted">{hint}</p> : null}
@@ -116,8 +116,8 @@ export function SettingRow({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-0 last:pb-0 first:pt-0">
-      <p className="text-sm font-medium">{label}</p>
-      {children}
+      <p className="min-w-0 flex-1 text-sm font-medium">{label}</p>
+      <div className="shrink-0">{children}</div>
     </div>
   );
 }

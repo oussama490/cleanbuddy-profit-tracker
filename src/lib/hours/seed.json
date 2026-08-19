@@ -1,0 +1,579 @@
+{
+  "fileType": "mes-heures-complete-data",
+  "version": 1,
+  "generatedAt": "2026-08-09",
+  "owner": "Oussama Talhi",
+  "language": "fr-CA",
+  "currency": "CAD",
+  "instructionsForCursor": [
+    "Adapter ces données au schéma exact utilisé par l'application Mes Heures.",
+    "Importer sans créer de doublons.",
+    "Conserver les dates, heures, pauses, fiches de paie et ajustements tels quels.",
+    "Ne pas transformer le 1er juillet en quart travaillé.",
+    "Après importation, vérifier que le total des 57 quarts est de 421,95 heures payables au taux de 17 $/h avant tout ajustement de paie."
+  ],
+  "settings": {
+    "defaultHourlyRate": 17,
+    "defaultBreakMinutes": 30,
+    "automaticBreakAfterHours": 5,
+    "targetHoursPerPayPeriod": 80,
+    "payPeriodLengthDays": 14,
+    "firstOfficialPayPeriodStart": "2026-05-17",
+    "nextExpectedPayDate": "2026-08-13",
+    "estimatedDeductionPercent": 18
+  },
+  "hourlyRates": [
+    {
+      "amount": 17,
+      "effectiveDate": "2026-05-13",
+      "note": "Taux initial"
+    }
+  ],
+  "shifts": [
+    {
+      "id": "shift-2026-05-13-0645-01",
+      "date": "2026-05-13",
+      "startTime": "06:45",
+      "endTime": "15:05",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-14-0653-02",
+      "date": "2026-05-14",
+      "startTime": "06:53",
+      "endTime": "19:05",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-15-1350-03",
+      "date": "2026-05-15",
+      "startTime": "13:50",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-17-1100-04",
+      "date": "2026-05-17",
+      "startTime": "11:00",
+      "endTime": "15:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-18-0755-05",
+      "date": "2026-05-18",
+      "startTime": "07:55",
+      "endTime": "12:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-19-0650-06",
+      "date": "2026-05-19",
+      "startTime": "06:50",
+      "endTime": "19:10",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-20-0755-07",
+      "date": "2026-05-20",
+      "startTime": "07:55",
+      "endTime": "19:10",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-21-1100-08",
+      "date": "2026-05-21",
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-22-1100-09",
+      "date": "2026-05-22",
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-24-1100-10",
+      "date": "2026-05-24",
+      "startTime": "11:00",
+      "endTime": "15:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-26-0720-11",
+      "date": "2026-05-26",
+      "startTime": "07:20",
+      "endTime": "19:05",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-27-0645-12",
+      "date": "2026-05-27",
+      "startTime": "06:45",
+      "endTime": "19:05",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-28-0700-13",
+      "date": "2026-05-28",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-30-0800-14",
+      "date": "2026-05-30",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-05-31-1100-15",
+      "date": "2026-05-31",
+      "startTime": "11:00",
+      "endTime": "15:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-02-0700-16",
+      "date": "2026-06-02",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-04-1100-17",
+      "date": "2026-06-04",
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-06-0800-18",
+      "date": "2026-06-06",
+      "startTime": "08:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-09-0700-19",
+      "date": "2026-06-09",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-10-0700-20",
+      "date": "2026-06-10",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-11-1100-21",
+      "date": "2026-06-11",
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-13-0800-22",
+      "date": "2026-06-13",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-14-1100-23",
+      "date": "2026-06-14",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-16-0700-24",
+      "date": "2026-06-16",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-18-1100-25",
+      "date": "2026-06-18",
+      "startTime": "11:00",
+      "endTime": "15:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-20-1100-26",
+      "date": "2026-06-20",
+      "startTime": "11:00",
+      "endTime": "15:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-23-1100-27",
+      "date": "2026-06-23",
+      "startTime": "11:00",
+      "endTime": "16:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-25-1100-28",
+      "date": "2026-06-25",
+      "startTime": "11:00",
+      "endTime": "16:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-27-0800-29",
+      "date": "2026-06-27",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-28-1100-30",
+      "date": "2026-06-28",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-29-1200-31",
+      "date": "2026-06-29",
+      "startTime": "12:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-06-30-0700-32",
+      "date": "2026-06-30",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-02-1030-33",
+      "date": "2026-07-02",
+      "startTime": "10:30",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-03-1100-34",
+      "date": "2026-07-03",
+      "startTime": "11:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-04-0800-35",
+      "date": "2026-07-04",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-05-1100-36",
+      "date": "2026-07-05",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-07-0700-37",
+      "date": "2026-07-07",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-08-1100-38",
+      "date": "2026-07-08",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-09-0700-39",
+      "date": "2026-07-09",
+      "startTime": "07:00",
+      "endTime": "16:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-10-1100-40",
+      "date": "2026-07-10",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-11-0800-41",
+      "date": "2026-07-11",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-12-1100-42",
+      "date": "2026-07-12",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-14-0700-43",
+      "date": "2026-07-14",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-15-1100-44",
+      "date": "2026-07-15",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-16-0700-45",
+      "date": "2026-07-16",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-17-1600-46",
+      "date": "2026-07-17",
+      "startTime": "16:00",
+      "endTime": "19:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-18-0800-47",
+      "date": "2026-07-18",
+      "startTime": "08:00",
+      "endTime": "10:30",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-19-1100-48",
+      "date": "2026-07-19",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-21-0700-49",
+      "date": "2026-07-21",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-22-1100-50",
+      "date": "2026-07-22",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-23-0700-51",
+      "date": "2026-07-23",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-24-1100-52",
+      "date": "2026-07-24",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Premier quart"
+    },
+    {
+      "id": "shift-2026-07-24-1700-53",
+      "date": "2026-07-24",
+      "startTime": "17:00",
+      "endTime": "19:00",
+      "breakMinutes": 0,
+      "note": "Deuxième quart"
+    },
+    {
+      "id": "shift-2026-07-25-0800-54",
+      "date": "2026-07-25",
+      "startTime": "08:00",
+      "endTime": "18:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-26-1100-55",
+      "date": "2026-07-26",
+      "startTime": "11:00",
+      "endTime": "14:00",
+      "breakMinutes": 0,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-28-0700-56",
+      "date": "2026-07-28",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    },
+    {
+      "id": "shift-2026-07-30-0700-57",
+      "date": "2026-07-30",
+      "startTime": "07:00",
+      "endTime": "19:00",
+      "breakMinutes": 30,
+      "note": "Importé depuis le registre de travail"
+    }
+  ],
+  "paySlips": [
+    {
+      "id": "pay-2026-06-04",
+      "periodStart": "2026-05-17",
+      "periodEnd": "2026-05-30",
+      "paymentDate": "2026-06-04",
+      "regularHoursPaid": 80,
+      "holidayHoursPaid": 0,
+      "grossPay": 1360,
+      "deductions": 246.05,
+      "netPay": 1113.95,
+      "manualHourAdjustment": 0
+    },
+    {
+      "id": "pay-2026-06-18",
+      "periodStart": "2026-05-31",
+      "periodEnd": "2026-06-13",
+      "paymentDate": "2026-06-18",
+      "regularHoursPaid": 80,
+      "holidayHoursPaid": 0,
+      "grossPay": 1360,
+      "deductions": 246.05,
+      "netPay": 1113.95,
+      "manualHourAdjustment": 0
+    },
+    {
+      "id": "pay-2026-07-03",
+      "periodStart": "2026-06-14",
+      "periodEnd": "2026-06-27",
+      "paymentDate": "2026-07-03",
+      "regularHoursPaid": 53,
+      "holidayHoursPaid": 8,
+      "grossPay": 1037,
+      "deductions": 140.61,
+      "netPay": 896.39,
+      "manualHourAdjustment": 0
+    },
+    {
+      "id": "pay-2026-07-16",
+      "periodStart": "2026-06-28",
+      "periodEnd": "2026-07-11",
+      "paymentDate": "2026-07-16",
+      "regularHoursPaid": 80,
+      "holidayHoursPaid": 0,
+      "grossPay": 1360,
+      "deductions": 246.05,
+      "netPay": 1113.95,
+      "manualHourAdjustment": 0
+    },
+    {
+      "id": "pay-2026-07-30",
+      "periodStart": "2026-07-12",
+      "periodEnd": "2026-07-25",
+      "paymentDate": "2026-07-30",
+      "regularHoursPaid": 77,
+      "holidayHoursPaid": 0,
+      "grossPay": 1309,
+      "deductions": 229.41,
+      "netPay": 1079.59,
+      "manualHourAdjustment": -1,
+      "note": "Écart provisoire de −1 h. Une pause de 60 min au lieu de 30 min n'explique que −0,50 h."
+    }
+  ],
+  "reserveAdjustments": [
+    {
+      "date": "2026-05-16",
+      "hours": 24.2,
+      "note": "Heures travaillées du 13 au 15 mai avant la première période officielle"
+    }
+  ],
+  "excludedOrUnconfirmedRecords": [
+    {
+      "date": "2026-05-22",
+      "reason": "Doublon exact exclu"
+    },
+    {
+      "date": "2026-07-01",
+      "reason": "Jour férié non visible comme paiement séparé sur les relevés reçus jusqu'au 30 juillet; ne pas créer un quart travaillé"
+    }
+  ],
+  "verification": {
+    "shiftCount": 57,
+    "totalPayableHours": 421.95,
+    "totalGrossAt17": 7173.15,
+    "officialRegularHoursPaid": 370,
+    "officialHolidayHoursPaid": 8,
+    "totalNetPayments": 5317.83,
+    "estimatedReserveAfter20260730": 24.95
+  }
+}

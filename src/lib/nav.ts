@@ -23,7 +23,9 @@ export type NavItem = {
     | "shop"
     | "spark"
     | "search"
-    | "bill";
+    | "bill"
+    | "clock"
+    | "menu";
 };
 
 function item(
@@ -43,6 +45,14 @@ export const PRIMARY_NAV: NavItem[] = [
   item("/ads", "nav.ads", "nav.adsHint", "ads", "nav.tab.ads"),
   item("/reports", "nav.reports", "nav.reportsHint", "report", "nav.tab.reports"),
 ];
+
+export const HOURS_NAV = item(
+  "/hours",
+  "nav.hours",
+  "nav.hoursHint",
+  "clock",
+  "nav.tab.hours",
+);
 
 export const SETTINGS_NAV = item(
   "/settings",
@@ -65,23 +75,37 @@ export const ADVANCED_NAV: NavItem[] = [
   item("/suppliers", "nav.suppliers", "nav.suppliersHint", "truck"),
 ];
 
-export const SETTINGS_TOOL_GROUPS: { titleKey: string; items: NavItem[] }[] = [
+export const SIDEBAR_GROUPS: { titleKey: string; items: NavItem[] }[] = [
+  {
+    titleKey: "group.overview",
+    items: PRIMARY_NAV,
+  },
+  {
+    titleKey: "group.life",
+    items: [HOURS_NAV],
+  },
   {
     titleKey: "group.ops",
-    items: ADVANCED_NAV.filter((item) =>
-      ["/funnel", "/returns", "/calendar", "/checklist", "/suppliers"].includes(item.href),
+    items: ADVANCED_NAV.filter((navItem) =>
+      ["/funnel", "/returns", "/calendar", "/checklist", "/suppliers"].includes(navItem.href),
     ),
   },
   {
     titleKey: "group.money",
-    items: ADVANCED_NAV.filter((item) =>
-      ["/treasury", "/expenses", "/goals", "/rates"].includes(item.href),
+    items: ADVANCED_NAV.filter((navItem) =>
+      ["/treasury", "/expenses", "/goals", "/rates"].includes(navItem.href),
     ),
   },
   {
     titleKey: "group.tools",
-    items: ADVANCED_NAV.filter((item) => item.href === "/simulate"),
+    items: ADVANCED_NAV.filter((navItem) => navItem.href === "/simulate"),
   },
+];
+
+export const MOBILE_NAV: NavItem[] = [
+  PRIMARY_NAV[0],
+  PRIMARY_NAV[1],
+  HOURS_NAV,
 ];
 
 export const MOBILE_PRIMARY = PRIMARY_NAV;

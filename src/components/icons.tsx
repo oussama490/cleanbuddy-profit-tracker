@@ -151,6 +151,17 @@ export function NavIcon({
         <path d="M9 9h6M9 13h6" />
       </>
     ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M12 8v4.2l2.5 1.5" />
+      </>
+    ),
+    menu: (
+      <>
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </>
+    ),
   };
 
   return <Svg className={className}>{icons[name]}</Svg>;

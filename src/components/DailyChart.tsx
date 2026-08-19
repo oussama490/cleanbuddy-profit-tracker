@@ -78,7 +78,7 @@ export function DailyChart({
           </span>
         </div>
       </div>
-      <div className="h-56 w-full" dir="ltr">
+      <div className="h-48 w-full overflow-hidden sm:h-56" dir="ltr">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="var(--line)" vertical={false} />

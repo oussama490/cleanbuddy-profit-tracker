@@ -156,7 +156,7 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
       <p className="mb-4 text-sm text-muted">
         {t("streak")}: <span className="font-bold text-forest-mid">{streak}</span>
       </p>
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {Array.from({ length: daysInMonth }, (_, index) => {
           const day = String(index + 1).padStart(2, "0");
           const iso = `${month}-${day}`;
@@ -166,7 +166,7 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
             <Link
               key={iso}
               href="/daily"
-              className={`grid aspect-square place-items-center rounded-lg text-sm font-semibold ${
+              className={`grid aspect-square place-items-center rounded-md text-[11px] font-semibold sm:rounded-lg sm:text-sm ${
                 isLogged
                   ? "bg-profit text-white"
                   : isToday

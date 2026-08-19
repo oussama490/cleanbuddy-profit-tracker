@@ -70,6 +70,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-readex), "Segoe UI", Tahoma, sans-serif;
+  overflow-x: clip;
 }
 
 ::selection {
@@ -128,7 +129,8 @@ body {
   }
 
   .cb-page-title {
-    @apply text-[1.55rem] font-semibold leading-tight tracking-[-0.04em] text-foreground;
+    @apply font-semibold leading-tight tracking-[-0.04em] text-foreground;
+    font-size: clamp(1.28rem, 5vw, 1.55rem);
   }
 
   .cb-kicker {
@@ -191,7 +193,7 @@ body {
 
   .cb-till-num {
     font-family: var(--font-mono), ui-monospace, monospace;
-    font-size: clamp(2.35rem, 7vw, 3.85rem);
+    font-size: clamp(1.85rem, 8vw, 3.85rem);
     font-weight: 500;
     letter-spacing: -0.07em;
     line-height: 1;
@@ -204,11 +206,11 @@ body {
   }
 
   .cb-table th {
-    @apply px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted;
+    @apply px-3 py-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted sm:px-4;
   }
 
   .cb-table td {
-    @apply px-4 py-3;
+    @apply px-3 py-3 sm:px-4;
   }
 
   .cb-table thead {

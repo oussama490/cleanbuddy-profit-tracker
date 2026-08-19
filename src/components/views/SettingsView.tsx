@@ -1,7 +1,6 @@
 "use client";
 
 import { CurrencyToggle, useDisplayCurrency } from "@/components/DisplayCurrency";
-import { NavIcon } from "@/components/icons";
 import { LangToggle, ThemeToggle, usePrefs } from "@/components/PrefsProvider";
 import { PageHeader, Section, SettingRow, StatusBadge } from "@/components/ui";
 import {
@@ -10,9 +9,7 @@ import {
   type FulfillmentApp,
   type SalesModel,
 } from "@/lib/commerce";
-import { SETTINGS_TOOL_GROUPS } from "@/lib/nav";
 import type { DailyEntry, ProductCalculation, WorkspaceRecord } from "@/lib/types";
-import Link from "next/link";
 import { useState, type FormEvent } from "react";
 
 export function SettingsView({
@@ -194,33 +191,6 @@ export function SettingsView({
           <button className="cb-btn-ghost min-h-10" type="button" onClick={exportAll}>
             {t("settings.export")}
           </button>
-        </div>
-      </Section>
-
-      <Section title={t("settings.advanced")} hint={t("settings.advancedHint")}>
-        <div className="space-y-5">
-          {SETTINGS_TOOL_GROUPS.map((group) => (
-            <div key={group.titleKey}>
-              <p className="cb-kicker mb-2">{t(group.titleKey)}</p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {group.items.map((navItem) => (
-                  <Link
-                    key={navItem.href}
-                    href={navItem.href}
-                    className="flex items-start gap-3 rounded-[10px] border border-line bg-background px-3.5 py-3 transition hover:border-forest-mid"
-                  >
-                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-card text-forest-mid">
-                      <NavIcon name={navItem.icon} className="h-4 w-4" />
-                    </span>
-                    <span>
-                      <p className="text-sm font-semibold">{t(navItem.labelKey)}</p>
-                      <p className="mt-0.5 text-xs text-muted">{t(navItem.hintKey)}</p>
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
         </div>
       </Section>
 
