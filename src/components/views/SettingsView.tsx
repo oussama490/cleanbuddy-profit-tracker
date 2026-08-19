@@ -1,7 +1,7 @@
 "use client";
 
-import { CurrencyToggle, useDisplayCurrency } from "@/components/DisplayCurrency";
-import { LangToggle, ThemeToggle, usePrefs } from "@/components/PrefsProvider";
+import { useDisplayCurrency } from "@/components/DisplayCurrency";
+import { LangToggle, usePrefs } from "@/components/PrefsProvider";
 import { PageHeader, Section, SettingRow, StatusBadge } from "@/components/ui";
 import {
   DEFAULT_SHOP,
@@ -16,6 +16,7 @@ export function SettingsView({
   supabaseReady,
   schemaReady,
   extrasReady,
+  lifeReady,
   passwordEnabled,
   productCount,
   entryCount,
@@ -26,6 +27,7 @@ export function SettingsView({
   supabaseReady: boolean;
   schemaReady: boolean;
   extrasReady: boolean;
+  lifeReady: boolean;
   passwordEnabled: boolean;
   productCount: number;
   entryCount: number;
@@ -175,12 +177,6 @@ export function SettingsView({
         <SettingRow label={t("settings.lang")}>
           <LangToggle />
         </SettingRow>
-        <SettingRow label={t("settings.theme")}>
-          <ThemeToggle />
-        </SettingRow>
-        <SettingRow label={t("common.currency")}>
-          <CurrencyToggle />
-        </SettingRow>
       </Section>
 
       <Section title={t("settings.backup")} hint={t("settings.backupHint")}>
@@ -209,6 +205,9 @@ export function SettingsView({
         </SettingRow>
         <SettingRow label="workspace_records">
           <StatusBadge ok={extrasReady} onLabel={t("settings.ok")} offLabel={t("settings.missing")} />
+        </SettingRow>
+        <SettingRow label="jobs / budget">
+          <StatusBadge ok={lifeReady} onLabel={t("settings.ok")} offLabel={t("settings.missing")} />
         </SettingRow>
       </Section>
     </div>

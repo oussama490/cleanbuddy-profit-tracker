@@ -104,7 +104,7 @@ export function DashboardView({
               {t("dash.profit")} · {t(`period.${period}`)}
             </p>
             <p className="cb-till-num mt-3 break-words">{show(summary.profitCad)}</p>
-            <p className="mt-3 text-sm text-white/50">
+            <p className="mt-3 text-sm text-[var(--sidebar-muted)]">
               {profitDelta === null
                 ? t("dash.noCompare")
                 : `${profitDelta >= 0 ? "+" : ""}${(profitDelta * 100).toFixed(1)}% ${t("dash.vsPrev")}`}
@@ -224,7 +224,8 @@ export function DashboardView({
               <li key={product.id}>
                 <Link
                   href={`/products/${product.id}`}
-                    className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-line bg-background px-3 py-3"
+                    className="flex min-w-0 items-center justify-between gap-3 border border-line bg-background px-3 py-3"
+                    style={{ borderRadius: "var(--radius)" }}
                 >
                   <span className="min-w-0 truncate font-medium">{product.product_name}</span>
                   <span
@@ -246,7 +247,7 @@ export function DashboardView({
 
 function Mini({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-lg bg-background px-3 py-3">
+    <div className="min-w-0 bg-background px-3 py-3" style={{ borderRadius: "var(--radius)" }}>
       <p className="text-[11px] text-muted">{label}</p>
       <p className="cb-num mt-1 break-words text-lg font-semibold text-foreground">{value}</p>
     </div>

@@ -1,3 +1,4 @@
+import { dark, light } from "@/design/tokens";
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Readex_Pro } from "next/font/google";
 import type { ReactNode } from "react";
@@ -33,8 +34,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef2f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e131a" },
+    { media: "(prefers-color-scheme: light)", color: light.background },
+    { media: "(prefers-color-scheme: dark)", color: dark.background },
   ],
 };
 

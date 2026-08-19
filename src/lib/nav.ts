@@ -25,7 +25,13 @@ export type NavItem = {
     | "search"
     | "bill"
     | "clock"
-    | "menu";
+    | "passport"
+    | "menu"
+    | "user"
+    | "send"
+    | "journal"
+    | "invoice"
+    | "car";
 };
 
 function item(
@@ -38,13 +44,8 @@ function item(
   return { href, labelKey, hintKey, icon, shortKey };
 }
 
-export const PRIMARY_NAV: NavItem[] = [
-  item("/", "nav.home", "nav.homeHint", "home", "nav.tab.home"),
-  item("/daily", "nav.daily", "nav.dailyHint", "day", "nav.tab.daily"),
-  item("/products", "nav.products", "nav.productsHint", "box", "nav.tab.products"),
-  item("/ads", "nav.ads", "nav.adsHint", "ads", "nav.tab.ads"),
-  item("/reports", "nav.reports", "nav.reportsHint", "report", "nav.tab.reports"),
-];
+export const HOME_NAV = item("/", "nav.home", "nav.homeHint", "home", "nav.tab.home");
+export const DAILY_NAV = item("/daily", "nav.daily", "nav.dailyHint", "day", "nav.tab.daily");
 
 export const HOURS_NAV = item(
   "/hours",
@@ -62,55 +63,59 @@ export const SETTINGS_NAV = item(
   "nav.tab.settings",
 );
 
-export const ADVANCED_NAV: NavItem[] = [
-  item("/funnel", "nav.funnel", "nav.funnelHint", "funnel"),
-  item("/simulate", "nav.simulate", "nav.simulateHint", "lab"),
-  item("/treasury", "nav.treasury", "nav.treasuryHint", "cash"),
-  item("/goals", "nav.goals", "nav.goalsHint", "goal"),
-  item("/rates", "nav.rates", "nav.ratesHint", "fx"),
-  item("/returns", "nav.returns", "nav.returnsHint", "returns"),
-  item("/calendar", "nav.calendar", "nav.calendarHint", "cal"),
-  item("/checklist", "nav.checklist", "nav.checklistHint", "check"),
-  item("/expenses", "nav.expenses", "nav.expensesHint", "bill"),
-  item("/suppliers", "nav.suppliers", "nav.suppliersHint", "truck"),
-];
-
 export const SIDEBAR_GROUPS: { titleKey: string; items: NavItem[] }[] = [
   {
-    titleKey: "group.overview",
-    items: PRIMARY_NAV,
+    titleKey: "group.daily",
+    items: [
+      HOME_NAV,
+      DAILY_NAV,
+      item("/checklist", "nav.checklist", "nav.checklistHint", "check"),
+      item("/calendar", "nav.calendar", "nav.calendarHint", "cal"),
+    ],
   },
   {
-    titleKey: "group.life",
-    items: [HOURS_NAV],
+    titleKey: "group.business",
+    items: [
+      item("/products", "nav.products", "nav.productsHint", "box", "nav.tab.products"),
+      item("/ads", "nav.ads", "nav.adsHint", "ads", "nav.tab.ads"),
+      item("/funnel", "nav.funnel", "nav.funnelHint", "funnel"),
+      item("/returns", "nav.returns", "nav.returnsHint", "returns"),
+      item("/suppliers", "nav.suppliers", "nav.suppliersHint", "truck"),
+      item("/creatives", "nav.creatives", "nav.creativesHint", "spark"),
+      item("/simulate", "nav.simulate", "nav.simulateHint", "lab"),
+    ],
   },
   {
-    titleKey: "group.ops",
-    items: ADVANCED_NAV.filter((navItem) =>
-      ["/funnel", "/returns", "/calendar", "/checklist", "/suppliers"].includes(navItem.href),
-    ),
+    titleKey: "group.finance",
+    items: [
+      item("/treasury", "nav.treasury", "nav.treasuryHint", "cash"),
+      item("/expenses", "nav.expenses", "nav.expensesHint", "bill"),
+      item("/car-affordability", "nav.car", "nav.carHint", "car"),
+      item("/bills", "nav.bills", "nav.billsHint", "invoice"),
+      item("/payouts", "nav.payouts", "nav.payoutsHint", "send"),
+      item("/goals", "nav.goals", "nav.goalsHint", "goal"),
+      item("/rates", "nav.rates", "nav.ratesHint", "fx"),
+      item("/reports", "nav.reports", "nav.reportsHint", "report", "nav.tab.reports"),
+    ],
   },
   {
-    titleKey: "group.money",
-    items: ADVANCED_NAV.filter((navItem) =>
-      ["/treasury", "/expenses", "/goals", "/rates"].includes(navItem.href),
-    ),
-  },
-  {
-    titleKey: "group.tools",
-    items: ADVANCED_NAV.filter((navItem) => navItem.href === "/simulate"),
+    titleKey: "group.personal",
+    items: [
+      HOURS_NAV,
+      item("/pr-tracker", "nav.pr", "nav.prHint", "passport"),
+      item("/weekly-review", "nav.review", "nav.reviewHint", "note"),
+      item("/owner", "nav.owner", "nav.ownerHint", "user"),
+      item("/journal", "nav.journal", "nav.journalHint", "journal"),
+    ],
   },
 ];
 
-export const MOBILE_NAV: NavItem[] = [
-  PRIMARY_NAV[0],
-  PRIMARY_NAV[1],
-  HOURS_NAV,
-];
-
-export const MOBILE_PRIMARY = PRIMARY_NAV;
+export const MOBILE_NAV: NavItem[] = [HOME_NAV, DAILY_NAV, HOURS_NAV];
 
 export function isActivePath(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
+  if (href === "/weekly-review") {
+    return pathname === "/weekly-review" || pathname === "/review" || pathname.startsWith("/weekly-review/");
+  }
   return pathname === href || pathname.startsWith(`${href}/`);
 }

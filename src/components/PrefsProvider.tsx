@@ -139,10 +139,10 @@ export function LangToggle() {
   );
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ ink = false }: { ink?: boolean }) {
   const { theme, setTheme, t } = usePrefs();
   return (
-    <div className="cb-seg">
+    <div className={`cb-seg ${ink ? "cb-seg-ink" : ""}`}>
       {(["light", "dark"] as const).map((value) => (
         <button
           key={value}

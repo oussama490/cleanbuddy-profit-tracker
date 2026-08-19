@@ -157,12 +157,58 @@ export function NavIcon({
         <path d="M12 8v4.2l2.5 1.5" />
       </>
     ),
+    passport: (
+      <>
+        <rect x="5" y="3" width="14" height="18" rx="2" />
+        <circle cx="12" cy="10" r="2.4" />
+        <path d="M8.5 16.5h7" />
+      </>
+    ),
     menu: (
       <>
         <path d="M4 7h16M4 12h16M4 17h16" />
       </>
     ),
+    user: (
+      <>
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M5 19.5c1.4-3.2 3.8-4.8 7-4.8s5.6 1.6 7 4.8" />
+      </>
+    ),
+    send: (
+      <>
+        <path d="M4 12h12" />
+        <path d="M12 8l4 4-4 4" />
+        <path d="M20 6v12" />
+      </>
+    ),
+    journal: (
+      <>
+        <path d="M7 4h10a2 2 0 0 1 2 2v14H9a2 2 0 0 0-2 2V4z" />
+        <path d="M7 4a2 2 0 0 0-2 2v16" />
+        <path d="M10 8h6M10 12h6" />
+      </>
+    ),
+    invoice: (
+      <>
+        <path d="M7 3h10v18H7z" />
+        <path d="M10 8h6M10 12h4M10 16h5" />
+      </>
+    ),
+    car: (
+      <>
+        <path d="M5 16v2H4v-5l2.5-5h11L20 13v5h-1v-2H5z" />
+        <path d="M7 11h10" />
+        <circle cx="7.5" cy="16.5" r="1.4" />
+        <circle cx="16.5" cy="16.5" r="1.4" />
+      </>
+    ),
   };
 
-  return <Svg className={className}>{icons[name]}</Svg>;
+  const flip = name === "returns" || name === "send" || name === "truck" || name === "search";
+  return (
+    <Svg className={`${className ?? ""} ${flip ? "rtl:-scale-x-100" : ""}`.trim()}>
+      {icons[name]}
+    </Svg>
+  );
 }

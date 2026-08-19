@@ -62,7 +62,7 @@ export function HoursView() {
         description={t("hours.desc")}
       />
 
-      <div className="mb-5 grid w-full grid-cols-4 gap-0.5 rounded-[9px] border border-line bg-card p-0.5">
+      <div className="mb-5 grid w-full grid-cols-4 gap-0.5 border border-line bg-card p-0.5" style={{ borderRadius: "var(--radius)" }}>
         {TABS.map((item) => (
           <button
             key={item.id}

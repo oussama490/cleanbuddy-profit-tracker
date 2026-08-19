@@ -26,6 +26,7 @@ import type {
 } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { FormSection } from "./ui";
 import { DailyChart } from "./DailyChart";
 import { useDisplayCurrency } from "./DisplayCurrency";
 import { MoneyInput } from "./MoneyInput";
@@ -235,6 +236,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
           )}
         </div>
 
+        <FormSection title={t("daily.section.info")}>
         <label className="block space-y-2">
           <span className="text-sm font-medium">{t("common.date")}</span>
           <input
@@ -286,7 +288,9 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
             />
           </label>
         ) : null}
+        </FormSection>
 
+        <FormSection title={t("daily.section.funnel")}>
         <div className="grid grid-cols-2 gap-3">
           <NumberField
             label={t("funnel.new")}
@@ -309,7 +313,9 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
             onChange={(value) => setForm((current) => ({ ...current, returned: value }))}
           />
         </div>
+        </FormSection>
 
+        <FormSection title={t("daily.section.money")}>
         <MoneyInput
           id="revenue"
           label={t("dash.revenue")}
@@ -365,6 +371,7 @@ export function DailyTracker({ entries, products }: DailyTrackerProps) {
             {products.length === 0 ? ` — ${t("dash.noProductsBody")}` : null}
           </p>
         </label>
+        </FormSection>
 
         <button className="cb-btn w-full" disabled={pending} type="submit">
           {pending ? t("common.saving") : form.id ? t("daily.update") : t("daily.save")}

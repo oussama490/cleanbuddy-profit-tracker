@@ -1,3 +1,4 @@
+import { dark, light } from "@/design/tokens";
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -7,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Personal COD and dropshipping profit tracker",
     start_url: "/",
     display: "standalone",
-    background_color: "#efe8dc",
-    theme_color: "#12211d",
+    background_color: light.background,
+    theme_color: dark.ink,
     lang: "ar",
     dir: "rtl",
     icons: [

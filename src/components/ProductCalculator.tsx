@@ -24,6 +24,7 @@ import { formatMoney, formatNumber, formatPercent } from "@/lib/format";
 import type { Currency, DailyEntry, ProductCalculation } from "@/lib/types";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition, type FormEvent } from "react";
+import { FormSection } from "./ui";
 import { useDisplayCurrency } from "./DisplayCurrency";
 import { MoneyInput } from "./MoneyInput";
 import { usePrefs } from "./PrefsProvider";
@@ -338,6 +339,7 @@ export function ProductCalculator({
           ) : null}
         </div>
 
+        <FormSection title={t("product.section.info")}>
         <label className="block space-y-2">
           <span className="text-sm font-medium text-foreground">{t("product.name")}</span>
           <input
@@ -404,15 +406,16 @@ export function ProductCalculator({
                 key={value}
                 type="button"
                 onClick={() => setDecision(value)}
-                className={`min-h-11 rounded-lg text-sm font-semibold ${
+                className={`min-h-11 text-sm font-semibold ${
                   decision === value
                     ? value === "kill"
                       ? "bg-loss text-white"
                       : value === "scale"
-                        ? "bg-profit text-white"
-                        : "bg-forest-mid text-white"
+                        ? "bg-profit text-on-accent"
+                        : "bg-forest-mid text-on-accent"
                     : "border border-line bg-card"
                 }`}
+                style={{ borderRadius: "var(--radius)" }}
               >
                 {t(`decision.${value}`)}
               </button>
@@ -425,7 +428,9 @@ export function ProductCalculator({
             placeholder={t("product.why")}
           />
         </div>
+        </FormSection>
 
+        <FormSection title={t("product.section.costs")}>
         <MoneyInput
           id="supplier"
           label={t("product.supplier")}
@@ -490,7 +495,7 @@ export function ProductCalculator({
         />
 
         {snapshot ? (
-          <section className="cb-card space-y-4">
+          <section className="space-y-4">
             <div>
               <h3 className="text-sm font-semibold">
                 {t("product.cpaTitle")}
@@ -538,13 +543,14 @@ export function ProductCalculator({
             {adsEstimate ? (
               <>
                 <div
-                  className={`rounded-lg p-4 ${
+                  className={`p-4 ${
                     adsEstimate.verdict === "go"
-                      ? "bg-forest-mid text-white"
+                      ? "bg-forest-mid text-on-accent"
                       : adsEstimate.verdict === "caution"
-                        ? "bg-gold text-forest"
+                        ? "bg-warn text-on-accent"
                         : "bg-loss text-white"
                   }`}
+                  style={{ borderRadius: "var(--radius)" }}
                 >
                   <p className="text-xs opacity-90">{t("product.maxCpaNew")}</p>
                   <p className="cb-num mt-1 text-2xl font-semibold">
@@ -615,7 +621,7 @@ export function ProductCalculator({
                 </button>
 
                 {priceCoveringCpa ? (
-                  <div className="rounded-lg border border-line bg-background p-3">
+                  <div className="border border-line bg-background p-3" style={{ borderRadius: "var(--radius)" }}>
                     <p className="text-xs text-muted">
                       {t("product.finalPriceFor", { n: targetMarginPct })}
                     </p>
@@ -675,14 +681,15 @@ export function ProductCalculator({
           }
           snapshot={snapshot}
         />
+        </FormSection>
 
         {pricing && snapshot ? (
-          <section className="cb-card space-y-3">
+          <FormSection title={t("product.section.results")}>
             <div>
               <h3 className="text-sm font-semibold text-foreground">
                 {t("product.dontKnow")}
               </h3>
-              <p className="mt-1 text-xs text-forest-mid/80">
+              <p className="mt-1 text-xs text-muted">
                 {t("product.priceHint")}
               </p>
             </div>
@@ -696,11 +703,12 @@ export function ProductCalculator({
                   <button
                     key={margin}
                     type="button"
-                    className={`rounded-md px-3 py-1.5 text-sm font-semibold ${
+                    className={`px-3 py-1.5 text-sm font-semibold ${
                       Number(targetMarginPct) === margin
-                        ? "bg-forest-mid text-white"
+                        ? "bg-forest-mid text-on-accent"
                         : "bg-background text-foreground ring-1 ring-line"
                     }`}
+                    style={{ borderRadius: "var(--radius)" }}
                     onClick={() => setTargetMarginPct(String(margin))}
                   >
                     {margin}%
@@ -718,7 +726,7 @@ export function ProductCalculator({
             </label>
 
             {pricing.recommendedSalePriceMxn ? (
-              <div className="rounded-lg border border-line bg-background p-3">
+              <div className="border border-line bg-background p-3" style={{ borderRadius: "var(--radius)" }}>
                 <p className="text-xs text-muted">{t("product.suggestedPrice")}</p>
                 <p className="mt-1 text-2xl font-bold text-forest-mid">
                   {formatMoney(
@@ -769,7 +777,8 @@ export function ProductCalculator({
                 return (
                   <div
                     key={margin}
-                    className="rounded-lg border border-line bg-background px-2 py-2"
+                    className="border border-line bg-background px-2 py-2"
+                    style={{ borderRadius: "var(--radius)" }}
                   >
                     <dt className="text-muted">{t("product.marginPct", { n: margin })}</dt>
                     <dd className="mt-1 font-semibold text-forest-mid">
@@ -781,48 +790,49 @@ export function ProductCalculator({
                 );
               })}
             </dl>
-          </section>
-        ) : null}
 
-        {pricing && Number(form.sale_price_amount) > 0 ? (
-          <div
-            className={`rounded-xl border p-4 ${
-              pricing.isHealthy
-                ? "border-line bg-card text-foreground"
-                : "border-loss/40 bg-card text-loss"
-            }`}
-          >
-            <p className="text-sm font-semibold">
-              {pricing.isHealthy
-                ? t("product.healthyMsg")
-                : t("product.warnMsg")}
-            </p>
-            <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-muted">{t("product.netAfterAds")}</dt>
-                <dd className="font-semibold">
-                  {formatMoney(pricing.netMarginMxn, "MXN")}
-                  <span className="mt-0.5 block text-xs font-normal">
-                    {formatMoney(pricing.netMarginCad, "CAD")}
-                  </span>
-                </dd>
+            {Number(form.sale_price_amount) > 0 ? (
+              <div
+                className={`border p-4 ${
+                  pricing.isHealthy
+                    ? "border-line bg-card text-foreground"
+                    : "border-loss/40 bg-card text-loss"
+                }`}
+                style={{ borderRadius: "var(--radius)" }}
+              >
+                <p className="text-sm font-semibold">
+                  {pricing.isHealthy
+                    ? t("product.healthyMsg")
+                    : t("product.warnMsg")}
+                </p>
+                <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-muted">{t("product.netAfterAds")}</dt>
+                    <dd className="font-semibold">
+                      {formatMoney(pricing.netMarginMxn, "MXN")}
+                      <span className="mt-0.5 block text-xs font-normal">
+                        {formatMoney(pricing.netMarginCad, "CAD")}
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted">{t("product.marginRatio")}</dt>
+                    <dd className="font-semibold">
+                      {formatNumber(pricing.marginPercent)}%
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-muted">{t("product.minSale")}</dt>
+                    <dd className="font-semibold">
+                      {Number.isFinite(pricing.minSalePriceMxn)
+                        ? formatMoney(pricing.minSalePriceMxn, "MXN")
+                        : t("product.impossible")}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-              <div>
-                <dt className="text-muted">{t("product.marginRatio")}</dt>
-                <dd className="font-semibold">
-                  {formatNumber(pricing.marginPercent)}%
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-muted">{t("product.minSale")}</dt>
-                <dd className="font-semibold">
-                  {Number.isFinite(pricing.minSalePriceMxn)
-                    ? formatMoney(pricing.minSalePriceMxn, "MXN")
-                    : t("product.impossible")}
-                </dd>
-              </div>
-            </dl>
-          </div>
+            ) : null}
+          </FormSection>
         ) : null}
 
         <button className="cb-btn w-full" disabled={pending} type="submit">
@@ -899,9 +909,10 @@ export function ProductCalculator({
               return (
                 <li
                   key={product.id}
-                  className={`rounded-xl border p-4 ${
+                  className={`border p-4 ${
                     result.isHealthy ? "border-line bg-card" : "border-loss/30 bg-card"
                   }`}
+                  style={{ borderRadius: "var(--radius)" }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -986,7 +997,7 @@ function Stat({
   sub?: string;
 }) {
   return (
-    <div className="rounded-lg border border-line bg-background p-3">
+    <div className="rounded-[var(--radius)] border border-line bg-background p-3">
       <dt className="text-xs text-muted">{label}</dt>
       <dd className="mt-1 font-semibold text-foreground">{value}</dd>
       {sub ? <p className="mt-0.5 text-[11px] text-muted">{sub}</p> : null}
@@ -1012,7 +1023,7 @@ function CostBreakdown({
     { label: t("product.supplierShort"), value: supplier, color: "bg-muted" },
     { label: t("product.shipShort"), value: shipping, color: "bg-forest-mid" },
     { label: "Dropi", value: commission, color: "bg-gold" },
-    { label: t("product.adShort"), value: ads, color: "bg-orange-500" },
+    { label: t("product.adShort"), value: ads, color: "bg-warn" },
   ];
   const profit = sale - supplier - shipping - commission - ads;
 

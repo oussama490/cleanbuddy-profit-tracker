@@ -149,7 +149,7 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
         description={lang === "fr" ? "Vert = saisi. Vide = oublié." : "أخضر = مسجّل. فارغ = منسي."}
       />
       {missed ? (
-        <Link href="/daily" className="cb-alert mb-4">
+        <Link href="/daily" className="cb-warn mb-4">
           {t("missed.yesterday")}
         </Link>
       ) : null}
@@ -166,13 +166,14 @@ export function CalendarView({ entries }: { entries: DailyEntry[] }) {
             <Link
               key={iso}
               href="/daily"
-              className={`grid aspect-square place-items-center rounded-md text-[11px] font-semibold sm:rounded-lg sm:text-sm ${
+              className={`grid aspect-square place-items-center text-[11px] font-semibold sm:text-sm ${
                 isLogged
-                  ? "bg-profit text-white"
+                  ? "bg-profit text-on-accent"
                   : isToday
-                    ? "bg-forest-mid text-white"
+                    ? "bg-forest-mid text-on-accent"
                     : "border border-line bg-card text-muted"
               }`}
+              style={{ borderRadius: "var(--radius)" }}
             >
               {index + 1}
             </Link>
@@ -620,7 +621,7 @@ export function RitualStrip({
   return (
     <div className="mb-5 space-y-3">
       {missed ? (
-        <Link href="/daily" className="cb-alert">
+        <Link href="/daily" className="cb-warn">
           {t("missed.yesterday")}
         </Link>
       ) : null}

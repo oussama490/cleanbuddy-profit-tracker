@@ -1,9 +1,5 @@
-import { RecordsView } from "@/components/views/RecordsView";
-import { loadCore, loadRecords } from "@/lib/load";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function ReviewPage() {
-  const [data, records] = await Promise.all([loadCore(), loadRecords("review")]);
-  return <RecordsView kind="review" records={records} extrasReady={data.extrasReady} />;
+export default function ReviewRedirect() {
+  redirect("/weekly-review");
 }

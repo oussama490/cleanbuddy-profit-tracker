@@ -37,7 +37,7 @@ export function KpiCard({
   label: string;
   value: string;
   hint?: string;
-  tone?: "default" | "profit" | "loss" | "gold";
+  tone?: "default" | "profit" | "loss" | "gold" | "warn";
 }) {
   const valueClass =
     tone === "profit"
@@ -46,7 +46,9 @@ export function KpiCard({
         ? "text-loss"
         : tone === "gold"
           ? "text-gold"
-          : "text-foreground";
+          : tone === "warn"
+            ? "text-[var(--warn-ink)]"
+            : "text-foreground";
 
   return (
     <article className="cb-kpi min-w-0">
@@ -76,10 +78,31 @@ export function EmptyState({
   );
 }
 
-export function ExtrasBanner({ ready }: { ready: boolean }) {
+export function FormSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <fieldset className="cb-fieldset space-y-4">
+      <legend className="cb-fieldset-legend">{title}</legend>
+      {children}
+    </fieldset>
+  );
+}
+
+export function ExtrasBanner({
+  ready,
+  messageKey = "extras.banner",
+}: {
+  ready: boolean;
+  messageKey?: string;
+}) {
   const { t } = usePrefs();
   if (ready) return null;
-  return <p className="cb-notice mb-4">{t("extras.banner")}</p>;
+  return <p className="cb-notice mb-4">{t(messageKey)}</p>;
 }
 
 export function Section({

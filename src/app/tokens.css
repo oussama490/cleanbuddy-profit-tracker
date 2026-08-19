@@ -1,0 +1,73 @@
+/* Entrepôt design tokens — edit here, not page by page. */
+
+:root {
+  --background: #eff1ee;
+  --foreground: #121916;
+  --card: #fbfcfb;
+  --muted: #5a675f;
+  --line: #d5dcd6;
+  --accent: #00a888;
+  --accent-soft: #d4f3ec;
+  --ink: #17211c;
+  --led: #5ff5d0;
+  --profit: #0a8f72;
+  --loss: #d42b1a;
+  --warn: #d4890b;
+  --warn-ink: #8a4f08;
+  --warn-soft: #f6e6c4;
+  --on-accent: #0a100e;
+  --input: #fbfcfb;
+  --overlay: rgba(10, 16, 14, 0.58);
+  --chart-revenue: #6d7f74;
+  --sidebar: #17211c;
+  --sidebar-fg: #e6eee9;
+  --sidebar-muted: rgba(230, 238, 233, 0.48);
+  --sidebar-line: rgba(230, 238, 233, 0.1);
+  --sidebar-hover: rgba(230, 238, 233, 0.06);
+  --sidebar-active: rgba(230, 238, 233, 0.1);
+  --sidebar-footer: #121a16;
+  --gold: var(--accent);
+  --gold-soft: var(--accent-soft);
+  --forest: var(--ink);
+  --forest-mid: var(--accent);
+  --forest-bright: var(--led);
+  --radius: 12px;
+  --duration-drawer: 250ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --lift: 0 1px 2px rgba(23, 33, 28, 0.06), 0 8px 24px rgba(23, 33, 28, 0.04);
+  --glow: 0 0 0 1px color-mix(in srgb, var(--line) 90%, transparent);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+html.dark {
+  color-scheme: dark;
+  --background: #0c1210;
+  --foreground: #e6eee9;
+  --card: #151c18;
+  --muted: #8a9a91;
+  --line: #2a3530;
+  --accent: #3dcfb0;
+  --accent-soft: #16352c;
+  --ink: #0a100e;
+  --led: #6ff5d4;
+  --profit: #6ff5d4;
+  --loss: #f07060;
+  --warn: #e5a83a;
+  --warn-ink: #f0c56a;
+  --warn-soft: #3a2e14;
+  --on-accent: #0a100e;
+  --input: #101714;
+  --overlay: rgba(6, 10, 8, 0.72);
+  --chart-revenue: #8aa396;
+  --sidebar: #0a100e;
+  --sidebar-footer: #070b09;
+  --gold: var(--led);
+  --gold-soft: var(--accent-soft);
+  --forest: var(--ink);
+  --forest-mid: var(--accent);
+  --forest-bright: var(--led);
+  --lift: none;
+  --glow: 0 0 0 1px color-mix(in srgb, white 5%, transparent),
+    0 0 28px color-mix(in srgb, var(--led) 5%, transparent);
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}

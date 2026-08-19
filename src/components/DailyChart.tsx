@@ -54,7 +54,7 @@ export function DailyChart({
 
   if (points.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-line bg-card px-4 py-10 text-center text-sm text-muted">
+      <p className="rounded-[var(--radius)] border border-dashed border-line bg-card px-4 py-10 text-center text-sm text-muted">
         {t("chart.empty")}
       </p>
     );
@@ -69,7 +69,7 @@ export function DailyChart({
         </div>
         <div className="flex gap-4 text-[11px] font-medium text-muted">
           <span className="inline-flex items-center gap-1.5">
-            <i className="h-1.5 w-1.5 rounded-full bg-[#8ba3c7]" />
+            <i className="h-1.5 w-1.5 rounded-full bg-[var(--chart-revenue)]" />
             {t("chart.revenue")}
           </span>
           <span className="inline-flex items-center gap-1.5">
@@ -101,7 +101,7 @@ export function DailyChart({
               contentStyle={{
                 background: "var(--card)",
                 border: "1px solid var(--line)",
-                borderRadius: 8,
+                borderRadius: 12,
                 fontSize: 12,
               }}
               formatter={(value, name) => [
@@ -112,7 +112,7 @@ export function DailyChart({
             <Line
               type="monotone"
               dataKey="revenue"
-              stroke="#8ba3c7"
+              stroke="var(--chart-revenue)"
               strokeWidth={1.75}
               dot={false}
             />

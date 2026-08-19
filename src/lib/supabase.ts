@@ -23,7 +23,7 @@ export function getSupabase(): SupabaseClient {
 
 export function humanizeSupabaseError(message: string): string {
   if (message.includes("schema cache") || message.includes("does not exist")) {
-    return "الجداول غير موجودة بعد. نفّذ supabase/schema.sql في SQL Editor.";
+    return "الجداول غير موجودة بعد. نفّذ supabase/schema.sql أو supabase/life.sql في SQL Editor.";
   }
   return message;
 }

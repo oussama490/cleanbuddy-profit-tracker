@@ -66,11 +66,11 @@ export function useDisplayCurrency(): DisplayCurrencyState {
   return context;
 }
 
-export function CurrencyToggle() {
+export function CurrencyToggle({ ink = false }: { ink?: boolean }) {
   const { currency, setCurrency } = useDisplayCurrency();
 
   return (
-    <div className="cb-seg">
+    <div className={`cb-seg ${ink ? "cb-seg-ink" : ""}`}>
       {CURRENCIES.map((code) => (
         <button
           key={code}
